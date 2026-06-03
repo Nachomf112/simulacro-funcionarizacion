@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulacro CIEMAT · Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--green:#39d353;--blue:#58a6ff;--yellow:#d29922;--red:#f85149;--purple:#bc8cff;--text:#e6edf3;--text2:#8b949e;--font:'Segoe UI',system-ui,sans-serif}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-height(135deg,#0d1117,#161b22)}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;width:100%;max-width:360px}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.login-logo-icon{width:36px;height:36px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.login-logo-text{font-size:15px;font-weight:700}
+.login-sub{font-size:12px;color:var(--text2)}
+.l-label{font-size:12px;color:var(--text2);margin-bottom:5px;display:block}
+.l-input{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:1rem}
+.l-input:focus{outline:none;border-color:var(--blue)}
+.l-btn{width:100%;padding:10px;background:var(--green);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.l-btn:hover{opacity:0.9}
+.l-err{background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.3);color:var(--red);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:1rem;display:none}
+
+/* APP */
+.app{display:none;flex-direction:column;height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.topbar-title{font-size:14px;font-weight:700}
+.topbar-sub{font-size:11px;color:var(--text2)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.updated{font-size:11px;color:var(--text2)}
+.refresh-btn{padding:5px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer}
+.refresh-btn:hover{border-color:var(--blue)}
+.logout-btn{padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+/* TABS */
+.tabs{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;gap:0;flex-shrink:0}
+.tab-btn{padding:10px 16px;background:none;border:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--blue)}
+.tab-btn:hover:not(.active){color:var(--text)}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+.panel{display:none}.panel.active{display:block}
+
+/* KPIS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:700}
+.kpi-val{font-size:26px;font-weight:700}
+.kpi-val.green{color:var(--green)}.kpi-val.blue{color:var(--blue)}.kpi-val.yellow{color:var(--yellow)}.kpi-val.red{color:var(--red)}.kpi-val.purple{color:var(--purple)}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.chart-wrap{position:relative;height:180px}
+
+/* TABLE */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem}
+.table-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
+.table-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.table-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search-input{padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:180px}
+.search-input:focus{outline:none;border-color:var(--blue)}
+.filter-select{padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px}
+.t-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 12px;text-align:left;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:9px 12px;border-bottom:1px solid rgba(48,54,61,0.5);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(57,211,83,0.15);color:var(--green)}
+.badge-red{background:rgba(248,81,73,0.15);color:var(--red)}
+.badge-blue{background:rgba(88,166,255,0.15);color:var(--blue)}
+.badge-yellow{background:rgba(210,153,34,0.15);color:var(--yellow)}
+.badge-purple{background:rgba(188,140,255,0.15);color:var(--purple)}
+
+/* ACTION BTNS */
+.act-btn{padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:11px;cursor:pointer;white-space:nowrap}
+.act-btn:hover{border-color:var(--blue);color:var(--blue)}
+.act-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.act-btn.success{border-color:rgba(57,211,83,0.4);color:var(--green)}
+
+/* CREATE FORM */
+.create-form{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem}
+.create-form-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-row input{flex:1;min-width:120px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+.form-row input:focus{outline:none;border-color:var(--green)}
+.create-btn{padding:8px 16px;background:var(--green);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.create-btn:hover{opacity:0.9}
+
+/* DEVICE ICON */
+.dev-icon{font-size:14px;margin-right:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-ok{background:var(--green);color:#000}
+.toast-err{background:var(--red);color:#fff}
+.toast-warn{background:var(--yellow);color:#000}
+
+.no-data{text-align:center;padding:2rem;color:var(--text2);font-size:13px}
+
+@media(max-width:600px){
+  .charts-grid{grid-template-columns:1fr}
+  th:nth-child(n+5),td:nth-child(n+5){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🛡️</div>
+      <div>
+        <div class="login-logo-text">Simulacro CIEMAT · Admin</div>
+        <div class="login-sub">Panel de administración</div>
+      </div>
+    </div>
+    <div id="l-err" class="l-err"></div>
+    <label class="l-label">Contraseña de administrador</label>
+    <input type="password" id="l-pass" class="l-input" placeholder="••••••••••••" autocomplete="current-password">
+    <button class="l-btn" onclick="doAdminLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🛡️</div>
+      <div>
+        <div class="topbar-title">Simulacro Funcionarización · Admin</div>
+        <div class="topbar-sub updated" id="updated-time">Cargando...</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('usuarios',this)">👤 Usuarios</button>
+    <button class="tab-btn" onclick="switchTab('accesos',this)">📋 Accesos</button>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Usuarios totales</div><div class="kpi-val green" id="k-total">-</div></div>
+        <div class="kpi"><div class="kpi-label">Activos hoy</div><div class="kpi-val blue" id="k-hoy">-</div></div>
+        <div class="kpi"><div class="kpi-label">Activos</div><div class="kpi-val green" id="k-activos">-</div></div>
+        <div class="kpi"><div class="kpi-label">Inactivos</div><div class="kpi-val red" id="k-inactivos">-</div></div>
+        <div class="kpi"><div class="kpi-label">Simulacros</div><div class="kpi-val purple" id="k-simulacros">-</div></div>
+        <div class="kpi"><div class="kpi-label">Aprobados</div><div class="kpi-val green" id="k-aprobados">-</div></div>
+        <div class="kpi"><div class="kpi-label">Media global</div><div class="kpi-val yellow" id="k-media">-</div></div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">📅 Registros últimos 14 días</div>
+          <div class="chart-wrap"><canvas id="chart-registros"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🎯 Estado de usuarios</div>
+          <div class="chart-wrap"><canvas id="chart-estado"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="panel" id="panel-usuarios">
+      <div class="create-form">
+        <div class="create-form-title">➕ Crear código manual</div>
+        <div class="form-row">
+          <input type="text" id="new-code" placeholder="Código (ej: PEDRO-2026)" oninput="this.value=this.value.toUpperCase()">
+          <input type="text" id="new-nombre" placeholder="Nombre completo">
+          <input type="email" id="new-email" placeholder="Email">
+          <input type="text" id="new-equipo" placeholder="Equipo">
+          <button class="create-btn" onclick="createCode()">+ Crear</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">👤 Usuarios registrados <span id="user-count" style="color:var(--text2);font-weight:400"></span></div>
+          <div class="table-actions">
+            <input type="text" class="search-input" id="search-users" placeholder="🔍 Buscar..." oninput="filterUsers()">
+            <select class="filter-select" id="filter-estado" onchange="filterUsers()">
+              <option value="">Todos</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
+            </select>
+          </div>
+        </div>
+        <div class="t-wrap">
+          <table>
+            <thead><tr>
+              <th>Usuario</th><th>Código</th><th>Estado</th><th>Dispositivo</th>
+              <th>IP</th><th>Registro</th><th>Último acceso</th>
+              <th>Simulacros</th><th>Media</th><th>Mejor</th><th>Ubicación</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="12" class="no-data">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESOS -->
+    <div class="panel" id="panel-accesos">
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">📋 Registro de accesos</div>
+          <div class="table-actions">
+            <input type="text" class="search-input" id="search-accesos" placeholder="🔍 Buscar..." oninput="filterAccesos()">
+            <select class="filter-select" id="filter-device" onchange="filterAccesos()">
+              <option value="">Todos los dispositivos</option>
+              <option value="móvil">Móvil</option>
+              <option value="escritorio">Escritorio</option>
+              <option value="tablet">Tablet</option>
+            </select>
+            <button class="act-btn" onclick="exportCSV()">⬇ CSV</button>
+          </div>
+        </div>
+        <div class="t-wrap">
+          <table>
+            <thead><tr>
+              <th>Fecha</th><th>Hora</th><th>Nombre</th><th>Código</th>
+              <th>Dispositivo</th><th>OS</th><th>Navegador</th><th>IP</th>
+            </tr></thead>
+            <tbody id="accesos-tbody"><tr><td colspan="8" class="no-data">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://simulacro-funcionarizacion.vercel.app/api';
+const ADMIN_TOKEN = 'ciemat-admin-2026';
+const ADMIN_PASS = 'CiematAdmin2026!';
+
+let allUsers = [], allAccesos = [];
+let chartReg = null, chartEstado = null;
+
+// ── LOGIN ──
+function doAdminLogin() {
+  const pass = document.getElementById('l-pass').value;
+  if (pass !== ADMIN_PASS) {
+    const err = document.getElementById('l-err');
+    err.textContent = 'Contraseña incorrecta';
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 3000);
+    return;
+  }
+  sessionStorage.setItem('sim_admin', '1');
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadAll();
+  setInterval(loadAll, 60000);
+}
+
+document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doAdminLogin(); });
+
+function doLogout() {
+  sessionStorage.removeItem('sim_admin');
+  location.reload();
+}
+
+if (sessionStorage.getItem('sim_admin')) {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadAll();
+  setInterval(loadAll, 60000);
+}
+
+// ── LOAD DATA ──
+async function loadAll() {
+  try {
+    const r = await fetch(`${API}/simulacro-admin?action=dashboard`, {
+      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` }
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+
+    allUsers = d.usuarios || [];
+    allAccesos = d.accesos || [];
+
+    renderKPIs(d.kpis);
+    renderCharts(d.kpis, d.registrosPorDia);
+    renderUsers();
+    renderAccesos();
+
+    document.getElementById('updated-time').textContent = 'Actualizado: ' +
+      new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch (e) {
+    showToast('Error cargando datos: ' + e.message, 'err');
+  }
+}
+
+// ── KPIs ──
+function renderKPIs(k) {
+  document.getElementById('k-total').textContent = k.totalUsuarios || 0;
+  document.getElementById('k-hoy').textContent = k.activosHoy || 0;
+  document.getElementById('k-activos').textContent = k.activos || 0;
+  document.getElementById('k-inactivos').textContent = k.inactivos || 0;
+  document.getElementById('k-simulacros').textContent = k.totalSimulacros || 0;
+  document.getElementById('k-aprobados').textContent = k.totalAprobados || 0;
+  document.getElementById('k-media').textContent = (k.mediaGlobal || 0) + '%';
+}
+
+// ── CHARTS ──
+function renderCharts(kpis, regPorDia) {
+  // Registros últimos 14 días
+  const dias = [];
+  const vals = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    dias.push(d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
+    vals.push(regPorDia[key] || 0);
+  }
+
+  if (chartReg) chartReg.destroy();
+  const ctx1 = document.getElementById('chart-registros').getContext('2d');
+  chartReg = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: dias,
+      datasets: [{ label: 'Registros', data: vals, backgroundColor: 'rgba(57,211,83,0.6)', borderColor: '#39d353', borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: 'rgba(48,54,61,0.5)' } },
+        y: { ticks: { color: '#8b949e', font: { size: 10 }, stepSize: 1 }, grid: { color: 'rgba(48,54,61,0.5)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  if (chartEstado) chartEstado.destroy();
+  const ctx2 = document.getElementById('chart-estado').getContext('2d');
+  chartEstado = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Activos', 'Inactivos'],
+      datasets: [{ data: [kpis.activos||0, kpis.inactivos||0], backgroundColor: ['rgba(57,211,83,0.7)', 'rgba(248,81,73,0.7)'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } } },
+      cutout: '65%'
+    }
+  });
+}
+
+// ── USUARIOS ──
+function renderUsers() {
+  let users = [...allUsers];
+  const q = document.getElementById('search-users')?.value.toLowerCase() || '';
+  const estado = document.getElementById('filter-estado')?.value || '';
+  if (q) users = users.filter(u => (u.nombre+u.email+u.codigo+u.equipo).toLowerCase().includes(q));
+  if (estado === 'activo') users = users.filter(u => u.activo);
+  if (estado === 'inactivo') users = users.filter(u => !u.activo);
+
+  document.getElementById('user-count').textContent = `(${users.length})`;
+
+  if (!users.length) {
+    document.getElementById('users-tbody').innerHTML = '<tr><td colspan="12" class="no-data">No hay usuarios</td></tr>';
+    return;
+  }
+
+  const devIcon = (d) => d === 'móvil' ? '📱' : d === 'tablet' ? '💊' : '🖥️';
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+  const fmtHour = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' }) : '';
+
+  document.getElementById('users-tbody').innerHTML = users.map(u => {
+    const lastDev = u.dispositivos?.slice(-1)[0] || null;
+    const devType = lastDev?.deviceType || '—';
+    const os = lastDev?.os || '—';
+    const ip = lastDev?.ip || u.ip_registro || '—';
+    return `<tr>
+      <td><div style="font-weight:600">${u.nombre}</div><div style="font-size:11px;color:var(--text2)">${u.email||'—'}</div></td>
+      <td><span style="color:var(--green);font-family:monospace;font-size:12px">${u.codigo}</span></td>
+      <td><span class="badge ${u.activo?'badge-green':'badge-red'}">${u.activo?'Activo':'Inactivo'}</span></td>
+      <td><span class="dev-icon">${devIcon(devType)}</span>${devType !== '—' ? `<span style="font-size:11px;color:var(--text2)">${os}</span>` : '—'}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--text2)">${ip}</td>
+      <td>${fmtDate(u.creadoEl)}</td>
+      <td>${u.ultimoAcceso ? fmtDate(u.ultimoAcceso) + ' ' + fmtHour(u.ultimoAcceso) : '—'}</td>
+      <td style="text-align:center">${u.stats.totalSimulacros}</td>
+      <td><strong style="color:${u.stats.media>=50?'var(--green)':'var(--red)'}">${u.stats.media}%</strong></td>
+      <td>${u.stats.mejor}%</td>
+      <td style="font-size:11px;color:var(--text2)">${u.ubicacion||'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="act-btn" onclick="resetFP('${u.codigo}')" title="Resetear dispositivo">Reset FP</button>
+          <button class="act-btn ${u.activo?'':'success'}" onclick="toggleCode('${u.codigo}')">${u.activo?'Desactivar':'Activar'}</button>
+          <button class="act-btn danger" onclick="deleteCode('${u.codigo}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterUsers() { renderUsers(); }
+
+// ── ACCESOS ──
+function renderAccesos() {
+  let logs = [...allAccesos];
+  const q = document.getElementById('search-accesos')?.value.toLowerCase() || '';
+  const dev = document.getElementById('filter-device')?.value || '';
+  if (q) logs = logs.filter(l => (l.nombre+l.codigo+l.ip+l.email).toLowerCase().includes(q));
+  if (dev) logs = logs.filter(l => l.deviceType === dev);
+
+  if (!logs.length) {
+    document.getElementById('accesos-tbody').innerHTML = '<tr><td colspan="8" class="no-data">No hay registros de acceso</td></tr>';
+    return;
+  }
+
+  const devIcon = (d) => d === 'móvil' ? '📱' : d === 'tablet' ? '💊' : '🖥️';
+
+  document.getElementById('accesos-tbody').innerHTML = logs.map(l => `<tr>
+    <td>${l.fecha||'—'}</td>
+    <td style="font-family:monospace">${l.hora||'—'}</td>
+    <td><strong>${l.nombre||'—'}</strong></td>
+    <td><span style="color:var(--green);font-family:monospace;font-size:11px">${l.codigo||'—'}</span></td>
+    <td><span class="dev-icon">${devIcon(l.deviceType)}</span>${l.deviceType||'—'}</td>
+    <td style="color:var(--text2)">${l.os||'—'}</td>
+    <td style="color:var(--text2)">${l.browser||'—'}</td>
+    <td style="font-family:monospace;font-size:11px;color:var(--text2)">${l.ip||'—'}</td>
+  </tr>`).join('');
+}
+
+function filterAccesos() { renderAccesos(); }
+
+// ── ACTIONS ──
+async function createCode() {
+  const codigo = document.getElementById('new-code').value.trim().toUpperCase();
+  const nombre = document.getElementById('new-nombre').value.trim();
+  const email = document.getElementById('new-email').value.trim();
+  const equipo = document.getElementById('new-equipo').value.trim();
+  if (!codigo || !nombre) { showToast('Código y nombre son obligatorios', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/simulacro-admin`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'create-code', codigo, nombre, email, equipo })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    showToast('✓ Código creado: ' + d.codigo, 'ok');
+    document.getElementById('new-code').value = '';
+    document.getElementById('new-nombre').value = '';
+    document.getElementById('new-email').value = '';
+    document.getElementById('new-equipo').value = '';
+    loadAll();
+  } catch (e) { showToast(e.message, 'err'); }
+}
+
+async function toggleCode(codigo) {
+  try {
+    const r = await fetch(`${API}/simulacro-admin`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'toggle-code', codigo })
+    });
+    const d = await r.json();
+    showToast(d.activo ? 'Código activado' : 'Código desactivado', 'ok');
+    loadAll();
+  } catch (e) { showToast('Error', 'err'); }
+}
+
+async function resetFP(codigo) {
+  if (!confirm('¿Resetear dispositivo de ' + codigo + '? El usuario podrá acceder desde cualquier dispositivo.')) return;
+  try {
+    const r = await fetch(`${API}/simulacro-admin`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'reset-fp', codigo })
+    });
+    showToast('Dispositivo reseteado', 'ok');
+    loadAll();
+  } catch (e) { showToast('Error', 'err'); }
+}
+
+async function deleteCode(codigo) {
+  if (!confirm('¿Eliminar el código ' + codigo + ' y todos sus datos? Esta acción no se puede deshacer.')) return;
+  try {
+    await fetch(`${API}/simulacro-admin`, {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'delete-code', codigo })
+    });
+    showToast('Código eliminado', 'warn');
+    loadAll();
+  } catch (e) { showToast('Error', 'err'); }
+}
+
+function exportCSV() {
+  const rows = [['Fecha','Hora','Nombre','Código','Dispositivo','OS','Navegador','IP']];
+  allAccesos.forEach(l => rows.push([l.fecha||'', l.hora||'', l.nombre||'', l.codigo||'', l.deviceType||'', l.os||'', l.browser||'', l.ip||'']));
+  const csv = rows.map(r => r.map(c => '"'+c+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'accesos_simulacro_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
+// ── NAV ──
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── TOAST ──
+function showToast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast toast-${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
