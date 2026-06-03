@@ -1,12 +1,11 @@
 // api/simulacro-auth.js
-// Autenticación por código de acceso + fingerprint de dispositivo
-// Patrón idéntico a validate-code.js de Fit AI
+// Autenticación por código + fingerprint — patrón Upstash correcto
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-async function redis(command, ...args) {
-  const res = await fetch(`${UPSTASH_URL}/${command}/${args.map(a => encodeURIComponent(a)).join('/')}`, {
+async function redisCmd(...args) {
+  const res = await fetch(`${UPSTASH_URL}/${args.map(a => encodeURIComponent(a)).join('/')}`, {
     headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
   });
   const data = await res.json();
@@ -14,23 +13,13 @@ async function redis(command, ...args) {
 }
 
 async function redisSet(key, value) {
-  const res = await fetch(`${UPSTASH_URL}/set/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${UPSTASH_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ value: JSON.stringify(value) })
-  });
-  return res.json();
+  return redisCmd('set', key, JSON.stringify(value));
 }
 
 async function redisGet(key) {
-  const res = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(key)}`, {
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-  });
-  const data = await res.json();
-  return data.result ? JSON.parse(data.result) : null;
+  const result = await redisCmd('get', key);
+  if (!result) return null;
+  try { return JSON.parse(result); } catch { return result; }
 }
 
 export default async function handler(req, res) {
@@ -49,18 +38,12 @@ export default async function handler(req, res) {
   if (!codeData) return res.status(401).json({ error: 'Código no válido' });
   if (!codeData.activo) return res.status(403).json({ error: 'Código desactivado' });
 
-  // Registrar dispositivo si es nuevo
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'desconocida';
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'desconocida';
   const dispositivos = codeData.dispositivos || [];
   const existe = dispositivos.find(d => d.fingerprint === fingerprint);
 
   if (!existe) {
-    dispositivos.push({
-      fingerprint,
-      ip,
-      primerAcceso: new Date().toISOString(),
-      ultimoAcceso: new Date().toISOString()
-    });
+    dispositivos.push({ fingerprint, ip, primerAcceso: new Date().toISOString(), ultimoAcceso: new Date().toISOString() });
   } else {
     existe.ultimoAcceso = new Date().toISOString();
     existe.ip = ip;
@@ -70,10 +53,5 @@ export default async function handler(req, res) {
   codeData.ultimoAcceso = new Date().toISOString();
   await redisSet(key, codeData);
 
-  return res.status(200).json({
-    ok: true,
-    equipo: codeData.equipo,
-    nombre: codeData.nombre || codigo.toUpperCase(),
-    codigo: codigo.toUpperCase()
-  });
+  return res.status(200).json({ ok: true, equipo: codeData.equipo, nombre: codeData.nombre||codigo.toUpperCase(), codigo: codigo.toUpperCase() });
 }
