@@ -1021,7 +1021,7 @@ async function doLogin(){
   const btn=document.getElementById('login-btn');
   btn.disabled=true;btn.textContent='Verificando...';
   try{
-    const r=await fetch(API+'/simulacro-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo,fingerprint:getFingerprint()})});
+    const r=await fetch(API+'/simulacro-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo,fingerprint:getFingerprint(),ua:navigator.userAgent})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Código no válido');
     session={codigo:d.codigo,nombre:d.nombre,equipo:d.equipo};
