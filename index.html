@@ -187,10 +187,53 @@ tr:hover td{background:#f7f9fc}
   .toolbar-right{margin-left:0;width:100%}
   .toolbar-right .btn{flex:1;justify-content:center}
 }
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#001f4d 0%,#003366 60%,#004080 100%);padding:1rem}
+.login-card{background:#fff;border-radius:16px;padding:2rem 1.75rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-title{font-size:18px;font-weight:700;color:#003366;margin-bottom:4px;text-align:center}
+.login-sub{font-size:12px;color:#888;text-align:center;margin-bottom:1.5rem}
+.login-input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#003366;font-weight:700;margin-bottom:1rem;transition:border-color 0.15s;font-family:inherit}
+.login-input:focus{outline:none;border-color:#0070C0}
+.login-btn{width:100%;padding:12px;background:#003366;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s}
+.login-btn:hover{background:#004080}
+.login-btn:disabled{opacity:0.6;cursor:default}
+.login-error{background:#FCEBEB;color:#A32D2D;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:1rem;display:none}
+.login-footer{text-align:center;margin-top:1.25rem;font-size:11px;color:#aaa}
+.user-chip{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:4px 10px;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+/* RANKING */
+.rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px}
+.rank-pos{font-size:18px;font-weight:700;color:#003366;min-width:32px;text-align:center}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:13px;font-weight:700;color:#1a1a2e}
+.rank-equipo{font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-stats{text-align:right;flex-shrink:0}
+.rank-media{font-size:18px;font-weight:700;color:#003366}
+/* ADMIN */
+.admin-input-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.admin-input-row input{flex:1;min-width:100px;padding:8px 12px;border-radius:8px;border:1px solid #cdd5e0;font-size:13px;font-family:inherit}
+
 </style>
 </head>
 <body>
-<div class="app">
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div class="login-title">Simulacro Funcionarización</div>
+      <div class="login-sub">Escala Administrativa OO.AA. · CIEMAT 2026</div>
+    </div>
+    <div id="login-error" class="login-error">Código no válido o desactivado</div>
+    <label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:5px;display:block">Código de acceso</label>
+    <input type="text" id="login-input" class="login-input" placeholder="XXXX-XXXX" maxlength="12" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    <button class="login-btn" onclick="doLogin()" id="login-btn">Acceder</button>
+    <div class="login-footer">Creado por <strong>Nacho Menárguez</strong> · menarguez-ia.com</div>
+  </div>
+</div>
+
+<div id="app-screen" style="display:none;flex-direction:column;min-height:100vh">
+
 
 <!-- HEADER -->
 <div class="header" id="main-header">
@@ -202,9 +245,16 @@ tr:hover td{background:#f7f9fc}
         <div class="header-sub">Escala Administrativa de Organismos Autónomos · Cambio de Régimen Jurídico</div>
       </div>
     </div>
-    <div class="timer-chip" id="timer-chip" style="display:none">
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="user-chip" id="user-chip" onclick="doLogout()" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="user-chip-name">-</span>
+      </div>
+      <div class="timer-chip" id="timer-chip" style="display:none">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span id="timer-display">80:00</span>
+    </div>
+      </div>
     </div>
   </div>
   <div class="tabs">
@@ -214,6 +264,8 @@ tr:hover td{background:#f7f9fc}
     <button class="tab" onclick="switchTab('revision')" id="tab-revision" style="display:none">🔍 Revisión</button>
     <button class="tab" onclick="switchTab('historial')">📁 Historial</button>
     <button class="tab" onclick="switchTab('estadisticas')">📈 Estadísticas</button>
+    <button class="tab" onclick="switchTab('ranking')">🏆 Ranking</button>
+    <button class="tab" id="tab-admin" onclick="switchTab('admin')" style="display:none">⚙️ Admin</button>
   </div>
 </div>
 
@@ -392,6 +444,38 @@ tr:hover td{background:#f7f9fc}
     <div class="cfg-card" id="tema-stats-content"></div>
   </div>
 
+
+  <!-- RANKING -->
+  <div class="panel" id="panel-ranking">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div class="sec-title" style="margin:0">🏆 Ranking global</div>
+      <button class="btn btn-outline btn-sm" onclick="loadRanking()">↻ Actualizar</button>
+    </div>
+    <div id="ranking-list"><div class="no-data">Cargando ranking...</div></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="panel" id="panel-admin">
+    <div class="sec-title">Estadísticas globales</div>
+    <div class="sg" id="admin-global-stats"><div class="sc" style="grid-column:1/-1"><div class="sl">Cargando...</div></div></div>
+    <div class="sec-title">Crear código de acceso</div>
+    <div class="cfg-card">
+      <div class="admin-input-row">
+        <input type="text" id="new-code" placeholder="Código (ej: NACHO-2026)" oninput="this.value=this.value.toUpperCase()">
+        <input type="text" id="new-nombre" placeholder="Nombre">
+        <input type="text" id="new-equipo" placeholder="Equipo">
+        <button class="btn btn-success" onclick="createCode()">+ Crear</button>
+      </div>
+    </div>
+    <div class="sec-title">Usuarios registrados</div>
+    <div class="tw" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Simulacros</th><th>Media</th><th>Mejor</th><th>Dispositivos</th><th>Acciones</th></tr></thead>
+        <tbody id="admin-codes-tbody"><tr><td colspan="8" style="text-align:center;color:#999;padding:1rem">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
 </div><!-- /content -->
 
 <!-- MODAL CONFIRMAR FINALIZAR -->
@@ -414,7 +498,7 @@ tr:hover td{background:#f7f9fc}
   <span id="footer-banco">Banco: 60 preguntas</span>
 </div>
 
-</div><!-- /app -->
+</div><!-- /app-screen -->
 
 <script>
 const TEMAS = {1:"Ley 39 y 40",2:"Personal func.",3:"Adquis. y pérdida",4:"Adm. electrónica",5:"Contratos",6:"Presupuesto"};
@@ -793,8 +877,10 @@ function switchTab(name){
   document.getElementById('panel-'+name).classList.add('active');
   event.target && event.target.classList && event.target.classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+name+"'"))t.classList.add('active');});
-  if(name==='historial') showHistory();
-  if(name==='estadisticas') updateStatsPanel();
+  if(name==='historial')showHistory();
+  if(name==='estadisticas')updateStatsPanel();
+  if(name==='ranking')loadRanking();
+  if(name==='admin')loadAdmin();
 }
 
 function goHome(){
@@ -921,6 +1007,185 @@ BANCO.push(...BANCO3);
 
 renderLastResult();
 updateStatsPanel();
+
+// ── CONFIG API ──
+const API = 'https://simulacro-funcionarizacion.vercel.app/api';
+let session = {codigo:'', nombre:'', equipo:''};
+
+function getFingerprint(){
+  const str=[navigator.userAgent,navigator.language,screen.width+'x'+screen.height,new Date().getTimezoneOffset()].join('|');
+  let h=0;for(let i=0;i<str.length;i++){h=(h<<5)-h+str.charCodeAt(i);h|=0;}
+  return Math.abs(h).toString(36);
+}
+
+async function doLogin(){
+  const codigo=document.getElementById('login-input').value.trim();
+  if(!codigo){showLoginError('Introduce tu código de acceso');return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Verificando...';
+  try{
+    const r=await fetch(API+'/simulacro-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo,fingerprint:getFingerprint()})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Código no válido');
+    session={codigo:d.codigo,nombre:d.nombre,equipo:d.equipo};
+    document.getElementById('user-chip-name').textContent=d.nombre;
+    document.getElementById('user-chip').style.display='flex';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='flex';
+    if(d.equipo==='ADMIN'||d.codigo==='NACHO-ADMIN'){document.getElementById('tab-admin').style.display='';}
+    loadRemoteHistory();
+    renderLastResult();
+    updateStatsPanel();
+  }catch(e){
+    showLoginError(e.message||'Código no válido');
+  }finally{btn.disabled=false;btn.textContent='Acceder';}
+}
+
+document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function showLoginError(msg){
+  const el=document.getElementById('login-error');el.textContent=msg;el.style.display='block';
+  setTimeout(()=>el.style.display='none',4000);
+}
+
+function doLogout(){
+  if(!confirm('¿Cerrar sesión?'))return;
+  session={codigo:'',nombre:'',equipo:''};
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-input').value='';
+  document.getElementById('user-chip').style.display='none';
+}
+
+async function loadRemoteHistory(){
+  try{
+    const r=await fetch(API+'/simulacro-stats?codigo='+session.codigo);
+    const d=await r.json();
+    if(d.history&&d.history.length){
+      localStorage.setItem('ciemat_exam_h_'+session.codigo,JSON.stringify(d.history));
+    }
+  }catch(e){}
+}
+
+// Override saveHistory para usar clave por usuario y guardar en remoto
+const _origSaveHistory = saveHistory;
+function saveHistory(entry){
+  try{
+    const key='ciemat_exam_h'+(session.codigo?'_'+session.codigo:'');
+    const h=JSON.parse(localStorage.getItem(key)||'[]');
+    h.unshift(entry);if(h.length>50)h.pop();
+    localStorage.setItem(key,JSON.stringify(h));
+  }catch(e){}
+  // Guardar en remoto
+  if(session.codigo){
+    fetch(API+'/simulacro-stats',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({codigo:session.codigo,resultado:entry})}).catch(()=>{});
+    // Actualizar ranking
+    fetch(API+'/simulacro-ranking').catch(()=>{});
+  }
+}
+
+// Override loadHistory para usar clave por usuario
+function loadHistory(){
+  try{
+    const key='ciemat_exam_h'+(session.codigo?'_'+session.codigo:'');
+    return JSON.parse(localStorage.getItem(key)||'[]');
+  }catch(e){return[];}
+}
+
+// ── RANKING ──
+async function loadRanking(){
+  document.getElementById('ranking-list').innerHTML='<div class="no-data">Cargando...</div>';
+  try{
+    const r=await fetch(API+'/simulacro-ranking');
+    const d=await r.json();
+    if(!d.ranking||!d.ranking.length){
+      document.getElementById('ranking-list').innerHTML='<div class="no-data">🏆 Completa simulacros para aparecer en el ranking</div>';return;
+    }
+    let html='';
+    d.ranking.forEach(u=>{
+      const medal=u.posicion===1?'🥇':u.posicion===2?'🥈':u.posicion===3?'🥉':'#'+u.posicion;
+      const esYo=u.codigo===session.codigo;
+      html+=`<div class="rank-item" style="${esYo?'border-color:#0070C0;background:#f0f7ff':''}">
+        <div class="rank-pos">${medal}</div>
+        <div class="rank-info">
+          <div class="rank-name">${u.nombre}${esYo?' <span class="badge bi" style="font-size:10px">Tú</span>':''}</div>
+          <div class="rank-equipo">${u.equipo||''} · ${u.totalSimulacros} simulacros · Mejor: ${u.mejor}%</div>
+        </div>
+        <div class="rank-stats">
+          <div class="rank-media">${u.media}%</div>
+          <div style="font-size:11px;color:#888">media</div>
+          <div style="margin-top:3px"><span class="badge ba" style="font-size:10px">${u.aprobados} aprobados</span></div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('ranking-list').innerHTML=html;
+  }catch(e){document.getElementById('ranking-list').innerHTML='<div class="no-data">Error cargando ranking</div>';}
+}
+
+// ── ADMIN ──
+async function loadAdmin(){
+  try{
+    const r=await fetch(API+'/simulacro-admin?action=global-stats',{headers:{Authorization:'Bearer ciemat-admin-2026'}});
+    const d=await r.json();
+    document.getElementById('admin-global-stats').innerHTML=`
+      <div class="sc"><div class="sl">Usuarios</div><div class="sv info">${d.totalUsuarios||0}</div></div>
+      <div class="sc"><div class="sl">Activos</div><div class="sv ok">${d.totalActivos||0}</div></div>
+      <div class="sc"><div class="sl">Simulacros</div><div class="sv purple">${d.totalSimulacros||0}</div></div>
+      <div class="sc"><div class="sl">Aprobados</div><div class="sv ok">${d.totalAprobados||0}</div></div>
+      <div class="sc"><div class="sl">Media global</div><div class="sv ${(d.mediaGlobal||0)>=50?'ok':'danger'}">${d.mediaGlobal||0}%</div></div>`;
+  }catch(e){}
+  try{
+    const r=await fetch(API+'/simulacro-admin?action=list-codes',{headers:{Authorization:'Bearer ciemat-admin-2026'}});
+    const d=await r.json();
+    if(!d.codes||!d.codes.length){document.getElementById('admin-codes-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#999;padding:1rem">No hay códigos</td></tr>';return;}
+    document.getElementById('admin-codes-tbody').innerHTML=d.codes.map(c=>`<tr>
+      <td><strong>${c.codigo}</strong></td>
+      <td>${c.nombre||'-'}</td>
+      <td><span class="badge ${c.activo?'ba':'br'}">${c.activo?'Activo':'Inactivo'}</span></td>
+      <td>${c.stats?.totalSimulacros||0}</td>
+      <td><strong>${c.stats?.media||0}%</strong></td>
+      <td>${c.stats?.mejor||0}%</td>
+      <td title="${(c.dispositivos||[]).map(d=>d.ip+' '+new Date(d.ultimoAcceso).toLocaleDateString('es-ES')).join('\n')}">${(c.dispositivos||[]).length} 📱</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="toggleCode('${c.codigo}')">${c.activo?'Desactivar':'Activar'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCode('${c.codigo}')">🗑</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){}
+}
+
+async function createCode(){
+  const codigo=document.getElementById('new-code').value.trim().toUpperCase();
+  const nombre=document.getElementById('new-nombre').value.trim();
+  const equipo=document.getElementById('new-equipo').value.trim();
+  if(!codigo||!equipo){showToast('Código y equipo son obligatorios','err');return;}
+  try{
+    const r=await fetch(API+'/simulacro-admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer ciemat-admin-2026'},body:JSON.stringify({action:'create-code',codigo,nombre,equipo})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    showToast('✓ Código creado: '+d.codigo,'ok');
+    document.getElementById('new-code').value='';document.getElementById('new-nombre').value='';document.getElementById('new-equipo').value='';
+    loadAdmin();
+  }catch(e){showToast(e.message,'err');}
+}
+
+async function toggleCode(codigo){
+  try{
+    const r=await fetch(API+'/simulacro-admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer ciemat-admin-2026'},body:JSON.stringify({action:'toggle-code',codigo})});
+    const d=await r.json();
+    showToast(d.activo?'Código activado':'Código desactivado','ok');loadAdmin();
+  }catch(e){showToast('Error','err');}
+}
+
+async function deleteCode(codigo){
+  if(!confirm('¿Eliminar '+codigo+' y todos sus datos?'))return;
+  try{
+    await fetch(API+'/simulacro-admin',{method:'DELETE',headers:{'Content-Type':'application/json',Authorization:'Bearer ciemat-admin-2026'},body:JSON.stringify({action:'delete-code',codigo})});
+    showToast('Código eliminado','warn');loadAdmin();
+  }catch(e){showToast('Error','err');}
+}
+
 </script>
 </body>
 </html>
