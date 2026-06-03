@@ -402,10 +402,13 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:#f0f4f8;color:#1a1a2e;fo
       <!-- ÉXITO -->
       <div id="register-success" class="form-success">
         <div style="font-size:40px;margin-bottom:12px">✅</div>
-        <h3>¡Código enviado a tu email!</h3>
-        <p>Tu código de acceso personal es:</p>
-        <span class="form-success-code" id="success-code">----</span>
-        <p>Revisa tu bandeja de entrada (y la carpeta de spam). Con este código accede al simulacro desde cualquier dispositivo.</p>
+        <h3>¡Registro completado!</h3>
+        <p style="margin-bottom:12px">Hemos enviado tu código de acceso personal a tu email. Revisa tu bandeja de entrada (y la carpeta de spam).</p>
+        <div style="background:#fff;border:1px solid #b7d9b0;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#276;line-height:1.7">
+          📧 El email llega en menos de 1 minuto<br>
+          🔒 El código es personal e intransferible<br>
+          📱 Solo funciona en el dispositivo donde lo uses por primera vez
+        </div>
         <a href="https://simulacro.menarguez-ia.com" class="go-btn">Ir al simulacro →</a>
       </div>
     </div>
@@ -487,7 +490,6 @@ async function doRegister() {
     if (!r.ok) throw new Error(d.error || 'Error al registrar');
 
     document.getElementById('register-form').style.display = 'none';
-    document.getElementById('success-code').textContent = d.codigo;
     document.getElementById('register-success').style.display = 'block';
 
   } catch (e) {
