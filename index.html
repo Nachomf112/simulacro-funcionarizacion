@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Simulacro Funcionarización · Escala Administrativa OO.AA. · CIEMAT</title>
+<link rel="manifest" href="data:application/json,{}">
+<meta name="theme-color" content="#003366">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:"Segoe UI",Arial,sans-serif;background:#f0f4f8;font-size:14px}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+.header{background:#003366;padding:0.85rem 1.25rem;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.header-title{color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px}
+.header-title svg{flex-shrink:0}
+.header-sub{color:rgba(255,255,255,0.65);font-size:11px;margin-top:2px;font-weight:400}
+.timer-chip{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;min-width:80px;justify-content:center}
+.timer-chip.warn{background:rgba(186,117,23,0.35);border-color:#BA7517}
+.timer-chip.danger{background:rgba(163,45,45,0.35);border-color:#A32D2D;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+
+/* TABS */
+.tabs{display:flex;gap:3px;margin-top:0.75rem;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 14px;border-radius:8px 8px 0 0;border:none;font-size:12px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);white-space:nowrap;transition:all 0.15s}
+.tab.active{background:#f0f4f8;color:#003366}
+.tab:hover:not(.active){background:rgba(255,255,255,0.18);color:#fff}
+.tab-badge{background:#e24b4a;color:#fff;border-radius:10px;padding:0 5px;font-size:10px;margin-left:4px;display:inline}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:0.65rem 1.25rem;background:#002855;align-items:center}
+.toolbar input,.toolbar select{padding:7px 12px;border-radius:8px;border:none;font-size:13px;background:#fff;color:#111;height:36px}
+.toolbar input{flex:1;min-width:140px}
+.toolbar select{min-width:100px}
+.toolbar-right{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+
+/* BTN */
+.btn{padding:7px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;height:36px;transition:all 0.15s}
+.btn-primary{background:#0070C0;color:#fff}.btn-primary:hover{background:#005fa3}
+.btn-success{background:#1D9E75;color:#fff}.btn-success:hover{background:#0F6E56}
+.btn-export{background:#5B1F8A;color:#fff}.btn-export:hover{background:#3d0f6e}
+.btn-slate{background:#334155;color:#fff}.btn-slate:hover{background:#1e293b}
+.btn-danger{background:#A32D2D;color:#fff}.btn-danger:hover{background:#791F1F}
+.btn-outline{background:#fff;color:#003366;border:1px solid #cdd5e0}.btn-outline:hover{background:#f0f4f8}
+.btn-sm{padding:4px 10px;font-size:12px;height:28px}
+
+/* CONTENT */
+.content{padding:1rem 1.25rem;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* STAT CARDS */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:1rem}
+.sc{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px}
+.sl{font-size:10px;color:#888;margin-bottom:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px}
+.sv{font-size:20px;font-weight:700;color:#003366}
+.sv.ok{color:#1D9E75}.sv.warn{color:#BA7517}.sv.danger{color:#A32D2D}.sv.info{color:#185FA5}.sv.purple{color:#5B1F8A}
+
+/* TABLE */
+.tw{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:0.75rem}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+thead{background:#f7f9fc}
+th{padding:9px 12px;text-align:left;font-weight:700;font-size:11px;color:#003366;border-bottom:1px solid #e2e8f0;white-space:nowrap;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:9px 12px;border-bottom:1px solid #eef1f5;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7f9fc}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700}
+.ba{background:#EAF3DE;color:#27500A}
+.br{background:#FCEBEB;color:#A32D2D}
+.bt{background:#FAEEDA;color:#633806}
+.bc{background:#F1EFE8;color:#5F5E5A}
+.bi{background:#E6F1FB;color:#0C447C}
+.bp{background:#F0E8FB;color:#5B1F8A}
+
+/* SEC TITLE */
+.sec-title{font-size:11px;font-weight:700;color:#003366;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;padding-bottom:5px;border-bottom:2px solid #e2e8f0;margin-top:1rem}
+.sec-title:first-child{margin-top:0}
+
+/* CONFIG CARD */
+.cfg-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:10px}
+.cfg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.cfg-row.full{grid-template-columns:1fr}
+.cfg-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:5px}
+.cfg-row input,.cfg-row select{width:100%;padding:9px 12px;border-radius:8px;border:1px solid #cdd5e0;font-size:13px;color:#111}
+.cfg-row input:focus,.cfg-row select:focus{outline:2px solid #0070C0;border-color:#0070C0}
+
+/* QUESTION */
+.q-header{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:8px}
+.q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.q-num{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.3px}
+.q-text{font-size:14px;font-weight:600;color:#1a1a2e;line-height:1.6;margin-bottom:12px}
+.q-option{display:block;width:100%;text-align:left;padding:9px 12px;margin-bottom:6px;border:1px solid #cdd5e0;border-radius:8px;background:#fff;color:#1a1a2e;font-size:13px;cursor:pointer;line-height:1.5;transition:all 0.12s;font-family:inherit}
+.q-option:hover:not(:disabled){background:#f0f7ff;border-color:#0070C0}
+.q-option.selected{border-color:#0070C0;background:#f0f7ff;color:#003366;font-weight:600}
+.q-option.correct{border-color:#1D9E75;background:#EAF3DE;color:#085041;font-weight:600}
+.q-option.wrong{border-color:#A32D2D;background:#FCEBEB;color:#A32D2D;font-weight:600}
+.q-option:disabled{cursor:default}
+.explanation{margin-top:10px;padding:10px 12px;background:#f7f9fc;border-left:3px solid #0070C0;border-radius:0 8px 8px 0;font-size:12px;color:#334155;line-height:1.6}
+.explanation strong{color:#003366}
+
+/* PROGRESS BAR */
+.prog-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:8px}
+.prog-fill{height:100%;background:#0070C0;border-radius:3px;transition:width 0.3s ease}
+.prog-fill.warn{background:#BA7517}
+.prog-fill.danger{background:#A32D2D}
+
+/* DOTS */
+.dots-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%;background:#cdd5e0;cursor:pointer;transition:all 0.1s;border:none;padding:0}
+.dot.answered{background:#0070C0}
+.dot.current{background:#003366;box-shadow:0 0 0 2px #003366,0 0 0 3px #f0f4f8}
+.dot.correct-dot{background:#1D9E75}
+.dot.wrong-dot{background:#A32D2D}
+.dot.blank-dot{background:#B4B2A9}
+
+/* NAV */
+.nav-row{display:flex;gap:8px;margin-top:8px}
+.nav-row .btn{flex:1;justify-content:center}
+
+/* TEMA BAR */
+.tema-item{margin-bottom:10px}
+.tema-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;font-size:12px}
+.tema-label{color:#334155;font-weight:600}
+.tema-val{color:#003366;font-weight:700}
+.tema-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.tema-fill{height:100%;border-radius:3px;background:#0070C0;transition:width 0.4s ease}
+.tema-fill.ok{background:#1D9E75}
+.tema-fill.warn{background:#BA7517}
+.tema-fill.danger{background:#A32D2D}
+
+/* HISTORY */
+.hist-item{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:8px}
+.hist-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:4px}
+.hist-date{font-size:12px;font-weight:700;color:#003366}
+.hist-detail{font-size:12px;color:#666;display:flex;gap:10px;flex-wrap:wrap}
+.hist-pct-bar{height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px}
+.hist-pct-fill{height:100%;border-radius:2px;background:#0070C0}
+
+/* REVIEW */
+.rev-item{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:8px}
+.rev-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:4px}
+.rev-q{font-size:13px;font-weight:600;color:#1a1a2e;line-height:1.5;margin-bottom:8px}
+.rev-opt{font-size:12px;padding:5px 9px;margin-bottom:3px;border-radius:6px;color:#334155;background:#f7f9fc}
+.rev-opt.correct{background:#EAF3DE;color:#085041;font-weight:600}
+.rev-opt.wrong{background:#FCEBEB;color:#A32D2D;font-weight:600}
+
+/* RESULT */
+.result-score{text-align:center;padding:1.5rem;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px}
+.score-num{font-size:52px;font-weight:700;color:#003366;line-height:1}
+.score-den{font-size:14px;color:#888;margin-top:4px}
+.score-verdict{margin-top:10px;display:inline-block;padding:5px 16px;border-radius:8px;font-size:13px;font-weight:700}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:#fff;width:100%;max-width:420px;border-radius:14px;padding:1.25rem;box-shadow:0 10px 35px rgba(0,0,0,0.25);animation:modalShow .2s ease}
+@keyframes modalShow{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.modal h2{font-size:16px;font-weight:700;color:#003366;margin-bottom:1rem}
+
+/* TOAST */
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:10px;color:#fff;font-weight:700;font-size:13px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .25s;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:280px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-ok{background:#1D9E75}
+.toast-warn{background:#BA7517}
+.toast-err{background:#A32D2D}
+
+/* FOOTER */
+.footer{padding:0.6rem 1.25rem;font-size:11px;color:#aaa;border-top:1px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.footer span{color:#003366;font-weight:700}
+
+.no-data{text-align:center;padding:2rem;color:#999;font-size:13px}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f0f4f8}
+::-webkit-scrollbar-thumb{background:#b0c4de;border-radius:3px}
+
+@media(max-width:480px){
+  .cfg-row{grid-template-columns:1fr}
+  .nav-row .btn span{display:none}
+  .toolbar{flex-wrap:wrap}
+  .toolbar-right{margin-left:0;width:100%}
+  .toolbar-right .btn{flex:1;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header" id="main-header">
+  <div class="header-top">
+    <div class="header-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div>
+        <div>Simulacro Funcionarización · CIEMAT</div>
+        <div class="header-sub">Escala Administrativa de Organismos Autónomos · Cambio de Régimen Jurídico</div>
+      </div>
+    </div>
+    <div class="timer-chip" id="timer-chip" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="timer-display">80:00</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('inicio')">🏠 Inicio</button>
+    <button class="tab" onclick="switchTab('examen')" id="tab-examen" style="display:none">📋 Examen</button>
+    <button class="tab" onclick="switchTab('resultado')" id="tab-resultado" style="display:none">📊 Resultado</button>
+    <button class="tab" onclick="switchTab('revision')" id="tab-revision" style="display:none">🔍 Revisión</button>
+    <button class="tab" onclick="switchTab('historial')">📁 Historial</button>
+    <button class="tab" onclick="switchTab('estadisticas')">📈 Estadísticas</button>
+  </div>
+</div>
+
+<!-- TOOLBAR (solo en examen) -->
+<div class="toolbar" id="exam-toolbar" style="display:none">
+  <div class="dots-wrap" id="progress-dots" style="margin:0;flex:1;min-width:200px"></div>
+  <div class="toolbar-right">
+    <button class="btn btn-danger btn-sm" onclick="confirmFinish()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Finalizar
+    </button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ===== INICIO ===== -->
+  <div class="panel active" id="panel-inicio">
+
+    <div class="sec-title">Configurar simulacro</div>
+    <div class="cfg-card">
+      <div class="cfg-row">
+        <div>
+          <div class="cfg-label">Modo de examen</div>
+          <select id="cfg-mode">
+            <option value="exam">⏱ Examen oficial (80 min)</option>
+            <option value="study">📖 Modo estudio (sin tiempo)</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Tema</div>
+          <select id="cfg-tema">
+            <option value="0">Todos los temas</option>
+            <option value="1">Tema 1 · Ley 39/2015 y Ley 40/2015</option>
+            <option value="2">Tema 2 · Personal funcionario</option>
+            <option value="3">Tema 3 · Adquisición y pérdida</option>
+            <option value="4">Tema 4 · Administración electrónica</option>
+            <option value="5">Tema 5 · Contratos del sector público</option>
+            <option value="6">Tema 6 · Presupuesto del Estado</option>
+          </select>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div>
+          <div class="cfg-label">Número de preguntas: <strong id="cfg-num-val">60</strong></div>
+          <input type="range" id="cfg-num" min="5" max="60" step="5" value="60" oninput="document.getElementById('cfg-num-val').textContent=this.value">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn btn-success" style="width:100%;justify-content:center" onclick="startExam()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Comenzar simulacro
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-title" style="margin-top:1rem">Información del examen</div>
+    <div class="tw">
+      <table>
+        <thead><tr><th style="width:40%">Parámetro</th><th>Detalle</th></tr></thead>
+        <tbody>
+          <tr><td>Tipo de prueba</td><td>Test · 3 alternativas por pregunta</td></tr>
+          <tr><td>Total preguntas</td><td>60 + 5 de reserva</td></tr>
+          <tr><td>Tiempo máximo</td><td>80 minutos</td></tr>
+          <tr><td>Penalización</td><td><span class="badge ba">Sin penalización</span> — errores y blancos valen 0</td></tr>
+          <tr><td>Puntuación</td><td>0 – 60 puntos (1 pto/pregunta correcta)</td></tr>
+          <tr><td>Mínimo para aprobar</td><td><strong>30 puntos</strong> (50% del total)</td></tr>
+          <tr><td>Peso oposición</td><td>60% de la nota final</td></tr>
+          <tr><td>Peso concurso (méritos)</td><td>40% de la nota final</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec-title" style="margin-top:1rem">Temario oficial (Anexo II BOE)</div>
+    <div class="tw">
+      <table>
+        <thead><tr><th style="width:15%">Tema</th><th>Contenido</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bi">T1</span></td><td>Ley 39/2015 (Procedimiento Administrativo) y Ley 40/2015 (Régimen Jurídico)</td></tr>
+          <tr><td><span class="badge bp">T2</span></td><td>Personal funcionario: concepto, clases, derechos y deberes</td></tr>
+          <tr><td><span class="badge bt">T3</span></td><td>Adquisición y pérdida de la condición de funcionario. Situaciones administrativas</td></tr>
+          <tr><td><span class="badge ba">T4</span></td><td>Administración electrónica, registros, Oficinas de Asistencia, PAGe</td></tr>
+          <tr><td><span class="badge bc">T5</span></td><td>Contratos del sector público: concepto, clases, procedimiento de adjudicación</td></tr>
+          <tr><td><span class="badge br">T6</span></td><td>Presupuesto del Estado: concepto, estructura y créditos presupuestarios</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="last-result-card" style="display:none;margin-top:1rem">
+      <div class="sec-title">Último simulacro</div>
+      <div class="cfg-card" id="last-result-inner"></div>
+    </div>
+  </div>
+
+  <!-- ===== EXAMEN ===== -->
+  <div class="panel" id="panel-examen">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+    <div class="q-header">
+      <div class="q-meta">
+        <div class="q-num" id="q-num-label">Pregunta 1 de 60</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge bi" id="q-tema-badge">Tema 1</span>
+          <span class="badge bc" id="q-answered-badge">0 respondidas</span>
+        </div>
+      </div>
+      <div class="q-text" id="q-text">Cargando pregunta...</div>
+      <div id="q-options"></div>
+      <div class="explanation" id="q-explanation" style="display:none"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-outline" onclick="prevQ()" id="btn-prev">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Anterior</span>
+      </button>
+      <button class="btn btn-primary" onclick="nextQ()" id="btn-next">
+        <span>Siguiente</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== RESULTADO ===== -->
+  <div class="panel" id="panel-resultado">
+    <div class="result-score">
+      <div class="score-num" id="res-score">0</div>
+      <div class="score-den">puntos sobre <span id="res-den">60</span></div>
+      <div id="res-verdict-badge"></div>
+    </div>
+
+    <div class="sg" id="res-stats"></div>
+
+    <div class="sec-title">Resultado por tema</div>
+    <div class="cfg-card" id="res-temas"></div>
+
+    <div style="display:flex;gap:8px;margin-top:0.5rem;flex-wrap:wrap">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="reviewExam()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Revisar respuestas
+      </button>
+      <button class="btn btn-slate" style="flex:1;justify-content:center" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== REVISIÓN ===== -->
+  <div class="panel" id="panel-revision">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div style="font-size:12px;color:#666">Revisa cada pregunta con la respuesta correcta y su explicación</div>
+      <button class="btn btn-outline btn-sm" onclick="switchTab('resultado')">← Volver al resultado</button>
+    </div>
+    <div id="review-list"></div>
+  </div>
+
+  <!-- ===== HISTORIAL ===== -->
+  <div class="panel" id="panel-historial">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div class="sec-title" style="margin:0">Historial de simulacros</div>
+      <button class="btn btn-danger btn-sm" onclick="clearHistory()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Borrar todo
+      </button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ===== ESTADÍSTICAS ===== -->
+  <div class="panel" id="panel-estadisticas">
+    <div class="sec-title">Estadísticas acumuladas</div>
+    <div class="sg" id="global-stats"></div>
+    <div class="sec-title">Rendimiento por tema</div>
+    <div class="cfg-card" id="tema-stats-content"></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- MODAL CONFIRMAR FINALIZAR -->
+<div class="modal-bg" id="modal-finish">
+  <div class="modal">
+    <h2>¿Finalizar el examen?</h2>
+    <p style="font-size:13px;color:#555;margin-bottom:1.25rem">Hay <strong id="modal-blank-count">0</strong> preguntas sin responder. Los blancos no penalizan pero tampoco suman puntos.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="closeModal()">Seguir respondiendo</button>
+      <button class="btn btn-success" onclick="finishExam()">Sí, finalizar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="footer">
+  <span>CIEMAT</span> · Simulacro Funcionarización · Escala Administrativa OO.AA.
+  <span>Creado por <span style="color:#0070C0">Nacho Menárguez</span></span>
+  <span id="footer-banco">Banco: 60 preguntas</span>
+</div>
+
+</div><!-- /app -->
+
+<script>
+const TEMAS = {1:"Ley 39 y 40",2:"Personal func.",3:"Adquis. y pérdida",4:"Adm. electrónica",5:"Contratos",6:"Presupuesto"};
+const TEMA_COLORS = {1:"bi",2:"bp",3:"bt",4:"ba",5:"bc",6:"br"};
+
+const BANCO = [
+  {id:1,t:1,q:"¿Cuál es el objeto principal de la Ley 39/2015?",opts:["Regular el procedimiento administrativo común de las Administraciones Públicas","Regular el régimen jurídico del sector público","Establecer las bases del Estatuto Básico del Empleado Público"],a:0,exp:"La Ley 39/2015 regula el procedimiento administrativo común aplicable a todas las Administraciones Públicas. La Ley 40/2015 regula el régimen jurídico del sector público."},
+  {id:2,t:1,q:"El plazo de resolución de los procedimientos administrativos, salvo disposición especial, es de:",opts:["Tres meses","Seis meses","Un año"],a:0,exp:"El artículo 21 de la Ley 39/2015 establece que el plazo máximo para resolver y notificar es de tres meses salvo que la norma reguladora fije uno distinto."},
+  {id:3,t:1,q:"¿Qué efecto tiene el silencio administrativo positivo?",opts:["El interesado puede entender estimada su solicitud","El interesado puede entender desestimada su solicitud","No produce ningún efecto jurídico"],a:0,exp:"El silencio positivo implica que la solicitud se entiende estimada por ministerio de la ley, salvo que una norma con rango de ley o derecho comunitario establezca lo contrario."},
+  {id:4,t:1,q:"¿Cuántos días hábiles tiene el interesado para subsanar defectos en su solicitud?",opts:["10 días hábiles","15 días hábiles","20 días hábiles"],a:0,exp:"El artículo 68 de la Ley 39/2015 establece que si la solicitud no reúne los requisitos se requerirá al interesado para que subsane en 10 días hábiles."},
+  {id:5,t:1,q:"La notificación defectuosa surtirá efecto desde:",opts:["La fecha en que el interesado realice actuaciones que supongan conocimiento del contenido","La fecha de la notificación defectuosa","La fecha en que lo determine el órgano resolutorio"],a:0,exp:"Según el artículo 40.3 de la Ley 39/2015, la notificación practicada con omisión de alguno de sus requisitos surtirá efecto a partir de la fecha en que el interesado realice actuaciones que supongan el conocimiento del contenido."},
+  {id:6,t:1,q:"¿Cuál es el plazo para interponer recurso de alzada?",opts:["Un mes si el acto es expreso; tres meses si no lo es","Dos meses si el acto es expreso; seis meses si no lo es","Tres meses en todo caso"],a:0,exp:"El artículo 122 de la Ley 39/2015 establece el plazo de un mes para actos expresos y tres meses para actos presuntos."},
+  {id:7,t:1,q:"El recurso de reposición es:",opts:["Potestativo y previo al recurso contencioso-administrativo","Obligatorio antes de acudir a la vía judicial","Exclusivo de la Administración General del Estado"],a:0,exp:"El recurso de reposición es potestativo. El interesado puede elegir entre interponerlo o ir directamente al recurso contencioso-administrativo."},
+  {id:8,t:1,q:"Según la Ley 40/2015, las Administraciones Públicas actúan:",opts:["Con personalidad jurídica propia","Sin personalidad jurídica","Con la personalidad del Estado"],a:0,exp:"El artículo 2 de la Ley 40/2015 establece que las Administraciones Públicas actúan con personalidad jurídica única en cada caso."},
+  {id:9,t:1,q:"La competencia administrativa es:",opts:["Irrenunciable y se ejercerá por los órganos que la tengan atribuida","Delegable siempre sin restricciones","Renunciable cuando el superior jerárquico lo autorice"],a:0,exp:"El artículo 8 de la Ley 40/2015 establece que la competencia es irrenunciable y se ejercerá por los órganos que la tengan atribuida como propia, salvo delegación o avocación."},
+  {id:10,t:1,q:"¿Qué es la avocación?",opts:["La asunción por el superior de competencias del órgano inferior","La delegación del superior en el inferior","La encomienda de gestión a un órgano de otra Administración"],a:0,exp:"La avocación permite a los órganos superiores atraer para sí la resolución de un asunto cuya resolución corresponda a los órganos inferiores jerárquicamente dependientes."},
+  {id:11,t:2,q:"¿Qué es el Estatuto Básico del Empleado Público (EBEP)?",opts:["La norma que establece los principios generales de la relación de servicio de los empleados públicos","El reglamento interno de cada Administración para sus empleados","El convenio colectivo de los funcionarios de carrera"],a:0,exp:"El EBEP (RDL 5/2015) constituye el marco normativo básico aplicable al personal al servicio de las Administraciones Públicas, tanto funcionarios como laborales."},
+  {id:12,t:2,q:"¿Cuáles son las clases de empleados públicos según el EBEP?",opts:["Funcionarios de carrera, interinos, personal laboral y personal eventual","Funcionarios de carrera, personal laboral fijo y personal temporal","Funcionarios, laborales y personal directivo"],a:0,exp:"El artículo 8 del EBEP clasifica a los empleados públicos en: funcionarios de carrera, funcionarios interinos, personal laboral (fijo, indefinido o temporal) y personal eventual."},
+  {id:13,t:2,q:"Los funcionarios interinos son aquellos que:",opts:["Ocupan plazas dotadas presupuestariamente por razones de necesidad urgente o inaplazable","Han superado las pruebas selectivas pero no han tomado posesión","Son personal laboral que desempeña funciones de funcionario"],a:0,exp:"El artículo 10 del EBEP define a los funcionarios interinos como aquellos nombrados por razones expresamente justificadas de necesidad y urgencia para el desempeño de funciones propias de funcionarios de carrera."},
+  {id:14,t:2,q:"El derecho a la carrera profesional y a la promoción interna está reconocido en el EBEP como:",opts:["Un derecho individual de los empleados públicos","Una expectativa condicionada a la negociación colectiva","Un derecho colectivo de los cuerpos y escalas"],a:0,exp:"El artículo 14 del EBEP recoge como derecho individual de los empleados públicos el derecho a la carrera profesional y a la promoción interna."},
+  {id:15,t:2,q:"¿Qué deber tienen los empleados públicos respecto al ejercicio de sus funciones?",opts:["Deber de desempeñarlas con dedicación, imparcialidad y objetividad","Solo deben respetar el horario establecido","Únicamente deben cumplir las instrucciones de su superior jerárquico"],a:0,exp:"El artículo 53 del EBEP establece que los empleados públicos deberán desempeñar sus funciones con dedicación al servicio público, imparcialidad y objetividad."},
+  {id:16,t:2,q:"El régimen disciplinario de los empleados públicos incluye faltas:",opts:["Muy graves, graves y leves","Muy graves y graves únicamente","Graves y leves únicamente"],a:0,exp:"El EBEP clasifica las faltas disciplinarias en muy graves, graves y leves, con sus correspondientes sanciones para cada tipo."},
+  {id:17,t:2,q:"¿Cuál es la sanción máxima para una falta muy grave?",opts:["La separación del servicio","La suspensión de funciones hasta 6 años","El traslado forzoso sin derecho a indemnización"],a:0,exp:"La separación del servicio es la sanción máxima prevista en el EBEP para las faltas muy graves cometidas por funcionarios de carrera."},
+  {id:18,t:2,q:"El personal eventual:",opts:["Desempeña funciones de confianza o asesoramiento especial","Ocupa plazas de libre designación en la función pública","Es el personal laboral contratado con carácter temporal"],a:0,exp:"El artículo 12 del EBEP define al personal eventual como aquel que ocupa puestos de trabajo expresamente calificados como de confianza o asesoramiento especial."},
+  {id:19,t:2,q:"Los sindicatos más representativos en la Administración Pública tienen derecho a:",opts:["Participar en la determinación de las condiciones de trabajo de los empleados públicos","Designar a los miembros de los tribunales de selección","Aprobar la Oferta de Empleo Público"],a:0,exp:"Entre los derechos de los sindicatos más representativos se encuentra la participación institucional en la determinación de las condiciones de trabajo mediante la negociación colectiva."},
+  {id:20,t:2,q:"¿Qué es la Oferta de Empleo Público?",opts:["El instrumento mediante el cual las Administraciones hacen públicas las necesidades de personal a cubrir","El anuncio de convocatoria de plazas concretas","El listado de plazas vacantes ocupadas por interinos"],a:0,exp:"La Oferta de Empleo Público es el instrumento mediante el que las Administraciones Públicas hacen pública su necesidad de proveer puestos de trabajo, garantizando la estabilidad presupuestaria."},
+  {id:21,t:3,q:"¿Cuáles son los sistemas de selección para el acceso a la función pública?",opts:["Oposición, concurso-oposición y en casos excepcionales concurso","Oposición libre y concurso-oposición únicamente","Libre designación y concurso de méritos"],a:0,exp:"El artículo 61 del EBEP establece que los sistemas selectivos de los funcionarios de carrera serán la oposición, el concurso-oposición o, excepcionalmente, el concurso."},
+  {id:22,t:3,q:"La excedencia voluntaria por interés particular se puede solicitar tras:",opts:["Cinco años de servicios efectivos en la Administración","Dos años de servicios efectivos","Un año de servicios efectivos"],a:0,exp:"Para solicitar la excedencia voluntaria por interés particular se requiere haber prestado servicios efectivos durante un período mínimo de cinco años."},
+  {id:23,t:3,q:"¿Cuándo se adquiere la condición de funcionario de carrera?",opts:["Con el acto de toma de posesión","Con la superación del proceso selectivo","Con la publicación en el BOE de la resolución de nombramiento"],a:0,exp:"La condición de funcionario de carrera se adquiere con el acto de toma de posesión, una vez superado el proceso selectivo, publicado el nombramiento y cumplidos los requisitos exigidos."},
+  {id:24,t:3,q:"La pérdida de la condición de funcionario se produce por:",opts:["Renuncia, pérdida de nacionalidad, jubilación, separación del servicio e inhabilitación","Solo por jubilación o sanción disciplinaria","Por renuncia o traslado voluntario a otra Administración"],a:0,exp:"El artículo 63 del EBEP establece como causas: renuncia, pérdida de la nacionalidad, jubilación total, sanción de separación del servicio y pena de inhabilitación."},
+  {id:25,t:3,q:"La provisión de puestos por libre designación con convocatoria pública se aplica:",opts:["Solo en puestos de naturaleza directiva o de especial responsabilidad","A todos los puestos de la Administración General del Estado","A los puestos de nivel mínimo de cada cuerpo"],a:0,exp:"La libre designación con convocatoria pública aplica a puestos de la AGE de naturaleza directiva o de especial responsabilidad."},
+  {id:26,t:3,q:"¿Qué es la situación de servicios especiales?",opts:["Situación en la que el funcionario mantiene derechos en su cuerpo de origen mientras desempeña otras funciones","Una excedencia especial para cuidado de hijos","Un régimen especial para funcionarios directivos"],a:0,exp:"Los servicios especiales permiten al funcionario mantener derechos en su cuerpo de origen mientras desempeña funciones en organismos internacionales, cargos políticos, etc."},
+  {id:27,t:3,q:"El período de prácticas tras superar el proceso selectivo:",opts:["Es parte del proceso selectivo y su superación es necesaria para adquirir la condición de funcionario","Es opcional y no afecta al nombramiento","Solo se exige en determinados cuerpos superiores"],a:0,exp:"El período de prácticas forma parte del proceso selectivo y su superación es necesaria para adquirir la condición de funcionario de carrera, si así está previsto en la convocatoria."},
+  {id:28,t:3,q:"El concurso como sistema de selección valora principalmente:",opts:["Los méritos y capacidades de los aspirantes","La superación de ejercicios prácticos","Solo la antigüedad en el servicio"],a:0,exp:"En el sistema de concurso se valoran los méritos y capacidades de los aspirantes, sin necesidad de superar ejercicios o pruebas. Se reserva para casos excepcionales."},
+  {id:29,t:4,q:"¿Qué es el Punto de Acceso General Electrónico de la Administración (PAGe)?",opts:["El portal de entrada para los ciudadanos al acceso electrónico a los servicios públicos","El registro central del Estado","El repositorio de publicaciones oficiales del Estado"],a:0,exp:"El PAGe (administracion.gob.es) es el portal que facilita el acceso de los ciudadanos a los servicios de la AGE y sus organismos."},
+  {id:30,t:4,q:"Las Oficinas de Asistencia en Materia de Registros tienen como función principal:",opts:["Asistir a los ciudadanos en el uso de medios electrónicos y registrar documentos","Tramitar expedientes administrativos","Emitir certificados electrónicos a los ciudadanos"],a:0,exp:"Las OAMR asisten a los ciudadanos en la presentación de solicitudes y documentación, y gestionan el Registro General."},
+  {id:31,t:4,q:"El sistema Cl@ve permite:",opts:["Identificarse y firmar electrónicamente ante la Administración","Presentar exclusivamente recursos administrativos","Acceder únicamente al sistema tributario"],a:0,exp:"Cl@ve es el sistema de identificación y autenticación electrónica de las AAPP que permite a los ciudadanos identificarse y firmar electrónicamente."},
+  {id:32,t:4,q:"Los ciudadanos tienen derecho a relacionarse electrónicamente con la Administración:",opts:["Siempre, pudiendo elegir el canal de relación","Solo si están incluidos en el colectivo de obligados","Solo para determinados trámites previstos normativamente"],a:0,exp:"El artículo 14 de la Ley 39/2015 establece el derecho de todas las personas a relacionarse electrónicamente con las Administraciones Públicas."},
+  {id:33,t:4,q:"¿Qué es la sede electrónica?",opts:["La dirección electrónica cuya titularidad corresponde a una Administración Pública","El correo electrónico oficial de la Administración","El sistema de notificaciones electrónicas obligatorias"],a:0,exp:"La sede electrónica es la dirección electrónica cuya titularidad, gestión y administración corresponde a una Administración Pública, organismo público o entidad de derecho público."},
+  {id:34,t:4,q:"Las notificaciones electrónicas se consideran rechazadas cuando:",opts:["Hayan transcurrido 10 días naturales sin acceder a su contenido","El ciudadano no responda en 15 días hábiles","Se produzca un error técnico en el sistema"],a:0,exp:"Según el artículo 43 de la Ley 39/2015, se entenderá rechazada la notificación transcurridos diez días naturales desde la puesta a disposición sin acceder a su contenido."},
+  {id:35,t:4,q:"El Registro Electrónico General de la AGE:",opts:["Está habilitado para la recepción y remisión de solicitudes, escritos y comunicaciones","Solo recibe documentos en soporte papel digitalizados","Es exclusivo para comunicaciones entre Administraciones"],a:0,exp:"El Registro Electrónico General está habilitado para la recepción y remisión de solicitudes, escritos y comunicaciones de los ciudadanos y es accesible las 24 horas."},
+  {id:36,t:4,q:"¿Qué es el archivo electrónico único?",opts:["El archivo donde se almacenan los documentos electrónicos de procedimientos finalizados","El repositorio de firma electrónica","El directorio de sedes electrónicas de la AGE"],a:0,exp:"El archivo electrónico único permite mantener y gestionar los documentos electrónicos de los procedimientos finalizados, garantizando su conservación y acceso."},
+  {id:37,t:5,q:"¿Cuál es la norma básica que regula la contratación del sector público en España?",opts:["La Ley 9/2017, de Contratos del Sector Público","La Ley 30/2007 de Contratos del Sector Público","El Real Decreto Legislativo 3/2011"],a:0,exp:"La Ley 9/2017, de 8 de noviembre, de Contratos del Sector Público, es la norma vigente que transpone las Directivas europeas 2014/23/UE y 2014/24/UE."},
+  {id:38,t:5,q:"¿Cuáles son los contratos típicos del sector público?",opts:["Obra, concesión de obra, concesión de servicios, suministro, servicios y mixtos","Solo obra, suministro y servicios","Obra, suministro, consultoría y asistencia"],a:0,exp:"El artículo 12 de la LCSP enumera como contratos administrativos típicos: obra, concesión de obra, concesión de servicios, suministro, servicios y contratos mixtos."},
+  {id:39,t:5,q:"El procedimiento abierto simplificado se aplica cuando el valor estimado no supera:",opts:["100.000 euros","50.000 euros","300.000 euros"],a:0,exp:"El procedimiento abierto simplificado es aplicable a contratos de servicios y suministros cuyo valor estimado no supere 100.000 euros."},
+  {id:40,t:5,q:"¿Qué es el procedimiento negociado sin publicidad?",opts:["Un procedimiento excepcional para contratar directamente con empresas sin publicar convocatoria","El procedimiento habitual para contratos menores","Un tipo de licitación electrónica simplificada"],a:0,exp:"El procedimiento negociado sin publicidad es excepcional y solo puede usarse en los supuestos expresamente previstos en la LCSP."},
+  {id:41,t:5,q:"El contrato menor en servicios o suministros tiene un límite de:",opts:["15.000 euros","18.000 euros","50.000 euros"],a:0,exp:"Los contratos menores son aquellos cuyo valor estimado es inferior a 40.000 euros para obras e inferior a 15.000 euros para suministros y servicios."},
+  {id:42,t:5,q:"La Mesa de Contratación es:",opts:["El órgano colegiado encargado de calificar documentación y proponer la adjudicación","El tribunal que resuelve los conflictos contractuales","El órgano que aprueba el pliego de condiciones"],a:0,exp:"La Mesa de Contratación es el órgano colegiado que asiste al órgano de contratación en la calificación de la documentación y la propuesta de adjudicación."},
+  {id:43,t:5,q:"El pliego de cláusulas administrativas particulares (PCAP) contiene:",opts:["Los pactos y condiciones que definen los derechos y obligaciones de las partes","Las especificaciones técnicas de las prestaciones a contratar","El presupuesto base de licitación exclusivamente"],a:0,exp:"El PCAP define los elementos jurídicos y económicos del contrato: derechos y obligaciones, criterios de adjudicación, condiciones de ejecución, etc."},
+  {id:44,t:5,q:"¿Qué garantías puede exigir el órgano de contratación?",opts:["Garantía provisional y garantía definitiva","Solo garantía definitiva","Aval bancario obligatorio en todo caso"],a:0,exp:"La LCSP prevé la garantía provisional (potestativa) para asegurar la presentación de ofertas y la garantía definitiva (obligatoria en muchos casos) para asegurar el cumplimiento."},
+  {id:45,t:5,q:"¿Cuál es el plazo general de prescripción de las acciones derivadas de contratos del sector público?",opts:["Cuatro años","Dos años","Seis años"],a:0,exp:"Con carácter general, las acciones relativas a la nulidad y resolución de los contratos del sector público prescriben en cuatro años."},
+  {id:46,t:6,q:"¿Qué es el Presupuesto General del Estado?",opts:["La expresión cifrada, conjunta y sistemática de las obligaciones y derechos previstos para cada ejercicio","El plan de inversiones públicas del Gobierno","El registro de gastos e ingresos realizados por la Administración"],a:0,exp:"Según la Ley General Presupuestaria, el Presupuesto es la expresión cifrada, conjunta y sistemática de las obligaciones que puede reconocer el Estado y de los derechos previstos a liquidar."},
+  {id:47,t:6,q:"¿Cuál es el ejercicio presupuestario en España?",opts:["Coincide con el año natural (1 enero - 31 diciembre)","Abarca de octubre a septiembre del año siguiente","Es el período de 18 meses fijado por ley"],a:0,exp:"El ejercicio presupuestario coincide con el año natural, es decir, comprende del 1 de enero al 31 de diciembre de cada año."},
+  {id:48,t:6,q:"Si el Presupuesto General del Estado no se aprueba antes del 1 de enero, se produce:",opts:["La prórroga automática del presupuesto del ejercicio anterior","El bloqueo de todo el gasto público","La aprobación automática del proyecto presentado por el Gobierno"],a:0,exp:"Si los presupuestos no están aprobados el 1 de enero, quedan automáticamente prorrogados los del ejercicio anterior hasta la aprobación de los nuevos."},
+  {id:49,t:6,q:"¿Qué son los créditos presupuestarios?",opts:["Las autorizaciones para realizar gastos hasta ciertos importes destinados a finalidades específicas","Los ingresos previstos en el Presupuesto","Los préstamos que el Estado puede conceder"],a:0,exp:"Los créditos presupuestarios son autorizaciones de gasto que, con cargo a los fondos públicos, puede realizar el Estado para atender los gastos públicos previstos."},
+  {id:50,t:6,q:"La clasificación orgánica del presupuesto de gastos agrupa los créditos según:",opts:["Los centros gestores del gasto (ministerios, organismos)","La naturaleza económica del gasto","La finalidad o función a la que se destina el gasto"],a:0,exp:"La clasificación orgánica ordena los créditos por la estructura orgánica de la Administración, es decir, por el ministerio u organismo que gestiona el gasto."},
+  {id:51,t:6,q:"Los créditos extraordinarios se aprueban cuando:",opts:["Hay gastos imprevistos para los que no existe crédito en el presupuesto","Se necesita ampliar un crédito existente insuficiente","Se transfiere crédito entre programas del mismo ministerio"],a:0,exp:"Los créditos extraordinarios se conceden para gastos imprevistos y sin consignación en el presupuesto vigente, mediante ley."},
+  {id:52,t:6,q:"¿Qué son las modificaciones presupuestarias?",opts:["Alteraciones de los créditos aprobados durante el ejercicio para adaptarlos a las necesidades reales","La aprobación del nuevo presupuesto","Los ajustes de tesorería del Estado"],a:0,exp:"Las modificaciones presupuestarias son las alteraciones que se producen en los créditos inicialmente aprobados para adaptarlos a las necesidades que van surgiendo durante el ejercicio."},
+  {id:53,t:1,q:"El principio de buena fe y confianza legítima implica:",opts:["Las AAPP deben respetar la confianza generada en los administrados por su actuación previa","Los ciudadanos deben actuar siempre de buena fe con la Administración","La Administración puede revocar sus actos con efectos retroactivos"],a:0,exp:"El principio de confianza legítima obliga a la Administración a actuar de forma coherente con la expectativa razonable generada en los administrados por su conducta previa."},
+  {id:54,t:1,q:"La revisión de oficio de los actos administrativos nulos de pleno derecho:",opts:["Puede iniciarse en cualquier momento sin sujeción a plazo","Está sujeta a un plazo de cuatro años","Solo puede iniciarse a instancia del interesado"],a:0,exp:"La revisión de oficio de actos nulos de pleno derecho (art. 106 Ley 39/2015) puede iniciarse en cualquier momento, de oficio o a instancia del interesado, sin sujeción a plazo."},
+  {id:55,t:2,q:"La negociación colectiva en el empleo público se articula principalmente a través de:",opts:["Las Mesas de Negociación","Los Comités de Empresa","Los Convenios Colectivos exclusivamente"],a:0,exp:"En el empleo público, la negociación colectiva se articula a través de las Mesas de Negociación, siendo la Mesa General de Negociación de las AAPP el órgano principal."},
+  {id:56,t:3,q:"La jubilación forzosa de los funcionarios se produce:",opts:["Al cumplir la edad máxima de jubilación forzosa establecida legalmente","Automáticamente a los 65 años sin excepción","A los 67 años en todo caso"],a:0,exp:"La jubilación forzosa se produce al cumplir la edad máxima de jubilación forzosa establecida, que puede extenderse voluntariamente según la legislación vigente."},
+  {id:57,t:4,q:"¿Qué es la interoperabilidad en el ámbito de la administración electrónica?",opts:["La capacidad de los sistemas de información de compartir datos e intercambiar información entre sí","La obligación de digitalizar todos los documentos en papel","El sistema de copias de seguridad de la Administración"],a:0,exp:"La interoperabilidad es la capacidad de los sistemas y servicios de información de comunicarse, intercambiar datos y utilizar la información intercambiada entre sí."},
+  {id:58,t:5,q:"¿Qué es el perfil del contratante?",opts:["El espacio en el portal web del órgano de contratación donde se publica información sobre licitaciones","El expediente de solvencia del licitador","El registro de contratos adjudicados"],a:0,exp:"El perfil del contratante es el espacio en internet donde el órgano de contratación difunde información sobre licitaciones, adjudicaciones y demás datos relevantes."},
+  {id:59,t:6,q:"El principio de estabilidad presupuestaria implica:",opts:["Que las AAPP deben mantener una situación de equilibrio o superávit estructural","Que el presupuesto no puede modificarse una vez aprobado","Que los ingresos siempre deben superar los gastos en un 10%"],a:0,exp:"El principio de estabilidad presupuestaria (art. 135 CE) obliga a las Administraciones Públicas a mantener el equilibrio o superávit presupuestario."},
+  {id:60,t:1,q:"El recurso extraordinario de revisión procede contra:",opts:["Actos firmes en vía administrativa cuando concurren circunstancias tasadas","Cualquier acto administrativo de trámite","Actos no firmes dentro del plazo ordinario de recurso"],a:0,exp:"El recurso extraordinario de revisión (art. 125 Ley 39/2015) solo procede contra actos firmes en supuestos tasados: error de hecho, aparición de documentos posteriores, documentos declarados falsos, o sentencia condenatoria."}
+];
+
+let state = {
+  mode:'exam', numQ:60, tema:0,
+  questions:[], answers:[], current:0,
+  timeLeft:4800, timerInterval:null,
+  examFinished:false
+};
+
+function shuffle(arr){return arr.slice().sort(()=>Math.random()-0.5)}
+
+function startExam(){
+  const mode=document.getElementById('cfg-mode').value;
+  const num=parseInt(document.getElementById('cfg-num').value);
+  const tema=parseInt(document.getElementById('cfg-tema').value);
+  let pool=tema===0?BANCO:BANCO.filter(q=>q.t===tema);
+  if(pool.length===0){showToast('No hay preguntas para ese tema','err');return}
+  const extended=[...pool];
+  while(extended.length<num) extended.push(...shuffle(pool));
+  const qs=shuffle(extended).slice(0,num);
+  state={mode,numQ:num,tema,questions:qs,answers:new Array(num).fill(-1),current:0,timeLeft:80*60,timerInterval:null,examFinished:false};
+  switchTab('examen');
+  document.getElementById('tab-examen').style.display='';
+  document.getElementById('tab-resultado').style.display='none';
+  document.getElementById('tab-revision').style.display='none';
+  document.getElementById('exam-toolbar').style.display='';
+  renderQuestion();
+  if(mode==='exam'){
+    document.getElementById('timer-chip').style.display='flex';
+    updateTimer();
+    state.timerInterval=setInterval(()=>{state.timeLeft--;updateTimer();if(state.timeLeft<=0){clearInterval(state.timerInterval);finishExam();}},1000);
+  } else {
+    document.getElementById('timer-chip').style.display='none';
+  }
+}
+
+function updateTimer(){
+  const m=Math.floor(state.timeLeft/60),s=state.timeLeft%60;
+  const txt=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('timer-display').textContent=txt;
+  const chip=document.getElementById('timer-chip');
+  const pct=state.timeLeft/(80*60);
+  chip.className='timer-chip'+(pct<0.17?' danger':pct<0.33?' warn':'');
+}
+
+const LETTERS=['A','B','C'];
+function renderQuestion(){
+  const q=state.questions[state.current];
+  const ans=state.answers[state.current];
+  const fin=state.examFinished;
+  const total=state.questions.length;
+  const answered=state.answers.filter(a=>a>=0).length;
+
+  document.getElementById('q-num-label').textContent=`Pregunta ${state.current+1} de ${total}`;
+  document.getElementById('q-tema-badge').textContent=`Tema ${q.t} · ${TEMAS[q.t]}`;
+  document.getElementById('q-tema-badge').className='badge '+TEMA_COLORS[q.t];
+  document.getElementById('q-answered-badge').textContent=`${answered} respondidas`;
+  document.getElementById('q-text').textContent=q.q;
+
+  const pct=((state.current+1)/total)*100;
+  const pf=document.getElementById('prog-fill');
+  pf.style.width=pct+'%';
+  pf.className='prog-fill'+(state.mode==='exam'?(state.timeLeft<480?' danger':state.timeLeft<1600?' warn':''):'');
+
+  const opts=document.getElementById('q-options');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-option';
+    btn.textContent=LETTERS[i]+') '+o;
+    if(fin){
+      if(i===q.a) btn.classList.add('correct');
+      else if(i===ans) btn.classList.add('wrong');
+    } else {
+      if(i===ans) btn.classList.add('selected');
+    }
+    if(ans>=0||fin) btn.disabled=true;
+    else btn.onclick=()=>selectAnswer(i);
+    opts.appendChild(btn);
+  });
+
+  const exp=document.getElementById('q-explanation');
+  if(fin||(state.mode==='study'&&ans>=0)){
+    exp.innerHTML='<strong>Explicación:</strong> '+q.exp;
+    exp.style.display='block';
+  } else exp.style.display='none';
+
+  document.getElementById('btn-prev').disabled=state.current===0;
+  const btnNext=document.getElementById('btn-next');
+  if(state.current===total-1){
+    btnNext.innerHTML='<span>Finalizar</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    btnNext.className='btn btn-success';
+    btnNext.onclick=confirmFinish;
+  } else {
+    btnNext.innerHTML='<span>Siguiente</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    btnNext.className='btn btn-primary';
+    btnNext.onclick=nextQ;
+  }
+  renderDots();
+}
+
+function selectAnswer(i){state.answers[state.current]=i;renderQuestion();}
+function prevQ(){if(state.current>0){state.current--;renderQuestion();}}
+function nextQ(){if(state.current<state.questions.length-1){state.current++;renderQuestion();}}
+
+function renderDots(){
+  const c=document.getElementById('progress-dots');
+  c.innerHTML='';
+  state.questions.forEach((_,i)=>{
+    const btn=document.createElement('button');
+    btn.className='dot';
+    if(i===state.current) btn.classList.add('current');
+    else if(state.examFinished){
+      const q=state.questions[i];
+      if(state.answers[i]===q.a) btn.classList.add('correct-dot');
+      else if(state.answers[i]>=0) btn.classList.add('wrong-dot');
+      else btn.classList.add('blank-dot');
+    } else if(state.answers[i]>=0) btn.classList.add('answered');
+    btn.onclick=()=>{state.current=i;renderQuestion();};
+    btn.title='Pregunta '+(i+1);
+    c.appendChild(btn);
+  });
+}
+
+function confirmFinish(){
+  const blank=state.answers.filter(a=>a<0).length;
+  document.getElementById('modal-blank-count').textContent=blank;
+  document.getElementById('modal-finish').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-finish').classList.remove('open');}
+
+function finishExam(){
+  closeModal();
+  clearInterval(state.timerInterval);
+  state.examFinished=true;
+  document.getElementById('timer-chip').style.display='none';
+
+  const total=state.questions.length;
+  let correct=0,wrong=0,blank=0;
+  const temaMap={};
+  state.questions.forEach((q,i)=>{
+    if(!temaMap[q.t]) temaMap[q.t]={c:0,w:0,b:0,tot:0};
+    temaMap[q.t].tot++;
+    if(state.answers[i]<0){blank++;temaMap[q.t].b++;}
+    else if(state.answers[i]===q.a){correct++;temaMap[q.t].c++;}
+    else{wrong++;temaMap[q.t].w++;}
+  });
+  const pct=Math.round((correct/total)*100);
+  const passed=correct>=Math.ceil(total*0.5);
+
+  document.getElementById('res-score').textContent=correct;
+  document.getElementById('res-den').textContent=total;
+  document.getElementById('res-verdict-badge').innerHTML=passed
+    ?'<span class="score-verdict" style="background:#EAF3DE;color:#085041">✓ APROBADO</span>'
+    :'<span class="score-verdict" style="background:#FCEBEB;color:#A32D2D">✗ NO SUPERADO — mínimo '+Math.ceil(total*0.5)+' puntos</span>';
+
+  document.getElementById('res-stats').innerHTML=`
+    <div class="sc"><div class="sl">Correctas</div><div class="sv ok">${correct}</div></div>
+    <div class="sc"><div class="sl">Incorrectas</div><div class="sv danger">${wrong}</div></div>
+    <div class="sc"><div class="sl">En blanco</div><div class="sv">${blank}</div></div>
+    <div class="sc"><div class="sl">Porcentaje</div><div class="sv ${passed?'ok':'danger'}">${pct}%</div></div>
+  `;
+
+  const rt=document.getElementById('res-temas');
+  rt.innerHTML='';
+  Object.entries(temaMap).forEach(([t,v])=>{
+    const p=v.tot>0?Math.round((v.c/v.tot)*100):0;
+    const cl=p>=60?'ok':p>=40?'warn':'danger';
+    rt.innerHTML+=`<div class="tema-item">
+      <div class="tema-row">
+        <span class="tema-label"><span class="badge ${TEMA_COLORS[t]}">T${t}</span> ${TEMAS[t]}</span>
+        <span class="tema-val">${v.c}/${v.tot} · ${p}%</span>
+      </div>
+      <div class="tema-bar"><div class="tema-fill ${cl}" style="width:${p}%"></div></div>
+    </div>`;
+  });
+
+  saveHistory({date:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    mode:state.mode,total,correct,wrong,blank,pct,passed,temaMap,
+    time:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})});
+
+  document.getElementById('tab-resultado').style.display='';
+  document.getElementById('exam-toolbar').style.display='none';
+  switchTab('resultado');
+  updateStatsPanel();
+  renderLastResult();
+}
+
+function reviewExam(){
+  state.current=0;
+  const list=document.getElementById('review-list');
+  list.innerHTML='';
+  state.questions.forEach((q,i)=>{
+    const ans=state.answers[i];
+    const ok=ans===q.a;
+    const bl=ans<0;
+    const badgeCls=bl?'bt':ok?'ba':'br';
+    const badgeTxt=bl?'En blanco':ok?'Correcta':'Incorrecta';
+    list.innerHTML+=`<div class="rev-item">
+      <div class="rev-meta">
+        <span style="font-size:11px;color:#888;font-weight:700">P.${i+1} · Tema ${q.t} · ${TEMAS[q.t]}</span>
+        <span class="badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+      <div class="rev-q">${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="rev-opt${j===q.a?' correct':j===ans&&!ok?' wrong':''}">${LETTERS[j]}) ${o}${j===q.a?' ✓':j===ans&&!ok?' ✗':''}</div>`).join('')}
+      <div class="explanation" style="margin-top:8px"><strong>Explicación:</strong> ${q.exp}</div>
+    </div>`;
+  });
+  document.getElementById('tab-revision').style.display='';
+  switchTab('revision');
+}
+
+function saveHistory(entry){
+  try{const h=JSON.parse(localStorage.getItem('ciemat_exam_h')||'[]');h.unshift(entry);if(h.length>30)h.pop();localStorage.setItem('ciemat_exam_h',JSON.stringify(h));}catch(e){}
+}
+
+function loadHistory(){
+  try{return JSON.parse(localStorage.getItem('ciemat_exam_h')||'[]');}catch(e){return[];}
+}
+
+function renderLastResult(){
+  const h=loadHistory();
+  if(!h.length) return;
+  const e=h[0];
+  const card=document.getElementById('last-result-card');
+  const inner=document.getElementById('last-result-inner');
+  card.style.display='block';
+  inner.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:12px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.3px">Último simulacro · ${e.date} ${e.time||''}</div>
+      <div style="font-size:22px;font-weight:700;color:#003366;margin-top:2px">${e.correct}/${e.total} <span style="font-size:14px;color:#666">— ${e.pct}%</span></div>
+    </div>
+    <span class="badge ${e.passed?'ba':'br'}" style="font-size:12px;padding:4px 12px">${e.passed?'✓ APROBADO':'✗ NO SUPERADO'}</span>
+  </div>`;
+}
+
+function showHistory(){
+  const h=loadHistory();
+  const list=document.getElementById('history-list');
+  if(!h.length){list.innerHTML='<div class="no-data">📋 No hay simulacros registrados todavía.<br>Completa tu primer simulacro para verlo aquí.</div>';return;}
+  list.innerHTML='';
+  h.forEach(e=>{
+    const p=e.passed;
+    list.innerHTML+=`<div class="hist-item">
+      <div class="hist-row">
+        <span class="hist-date">📅 ${e.date}${e.time?' · '+e.time:''} · ${e.total} preguntas · ${e.mode==='study'?'Estudio':'Examen'}</span>
+        <span class="badge ${p?'ba':'br'}">${p?'Aprobado':'No superado'}</span>
+      </div>
+      <div class="hist-detail">
+        <span style="color:#1D9E75">✓ ${e.correct}</span>
+        <span style="color:#A32D2D">✗ ${e.wrong}</span>
+        <span style="color:#888">— ${e.blank}</span>
+        <span style="color:#003366;font-weight:700">${e.pct}%</span>
+      </div>
+      <div class="hist-pct-bar"><div class="hist-pct-fill" style="width:${e.pct}%;background:${p?'#1D9E75':'#A32D2D'}"></div></div>
+    </div>`;
+  });
+}
+
+function clearHistory(){
+  if(!confirm('¿Borrar todo el historial de simulacros?')) return;
+  try{localStorage.removeItem('ciemat_exam_h');}catch(e){}
+  showHistory();
+  updateStatsPanel();
+  document.getElementById('last-result-card').style.display='none';
+  showToast('Historial borrado','warn');
+}
+
+function updateStatsPanel(){
+  const h=loadHistory();
+  const gs=document.getElementById('global-stats');
+  const tc=document.getElementById('tema-stats-content');
+  if(!h.length){
+    gs.innerHTML='<div class="sc" style="grid-column:1/-1"><div class="sl">Sin datos</div><div style="font-size:13px;color:#999;margin-top:4px">Completa simulacros para ver estadísticas</div></div>';
+    tc.innerHTML='';
+    return;
+  }
+  const total=h.length;
+  const passed=h.filter(e=>e.passed).length;
+  const avg=Math.round(h.reduce((a,e)=>a+e.pct,0)/total);
+  const best=Math.max(...h.map(e=>e.pct));
+  gs.innerHTML=`
+    <div class="sc"><div class="sl">Simulacros</div><div class="sv info">${total}</div></div>
+    <div class="sc"><div class="sl">Aprobados</div><div class="sv ok">${passed}</div></div>
+    <div class="sc"><div class="sl">Media</div><div class="sv ${avg>=50?'ok':'danger'}">${avg}%</div></div>
+    <div class="sc"><div class="sl">Mejor nota</div><div class="sv purple">${best}%</div></div>
+  `;
+  const acc={};
+  h.forEach(e=>{Object.entries(e.temaMap||{}).forEach(([t,v])=>{
+    if(!acc[t]) acc[t]={c:0,tot:0};
+    acc[t].c+=v.c; acc[t].tot+=v.tot;
+  });});
+  tc.innerHTML='';
+  Object.entries(acc).forEach(([t,v])=>{
+    const p=v.tot>0?Math.round((v.c/v.tot)*100):0;
+    const cl=p>=60?'ok':p>=40?'warn':'danger';
+    tc.innerHTML+=`<div class="tema-item">
+      <div class="tema-row">
+        <span class="tema-label"><span class="badge ${TEMA_COLORS[t]}">T${t}</span> ${TEMAS[t]}</span>
+        <span class="tema-val">${p}% (${v.c}/${v.tot})</span>
+      </div>
+      <div class="tema-bar"><div class="tema-fill ${cl}" style="width:${p}%"></div></div>
+    </div>`;
+  });
+}
+
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  event.target && event.target.classList && event.target.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+name+"'"))t.classList.add('active');});
+  if(name==='historial') showHistory();
+  if(name==='estadisticas') updateStatsPanel();
+}
+
+function goHome(){
+  clearInterval(state.timerInterval);
+  document.getElementById('timer-chip').style.display='none';
+  document.getElementById('exam-toolbar').style.display='none';
+  document.getElementById('tab-examen').style.display='none';
+  document.getElementById('tab-resultado').style.display='none';
+  document.getElementById('tab-revision').style.display='none';
+  renderLastResult();
+  switchTab('inicio');
+}
+
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast toast-'+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+document.getElementById('footer-banco').textContent='Banco: '+BANCO.length+' preguntas · v1.0 · BOE-A-2026-11873';
+renderLastResult();
+updateStatsPanel();
+</script>
+</body>
+</html>
