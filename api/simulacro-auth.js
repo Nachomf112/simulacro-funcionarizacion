@@ -50,17 +50,9 @@ export default async function handler(req, res) {
     : /firefox/i.test(userAgent) ? 'Firefox'
     : /safari/i.test(userAgent) ? 'Safari' : 'Otro';
 
-  // Geolocalización (dentro del flujo principal, no async)
-  let ubicacion = codeData.ubicacion || null;
-  if (!ubicacion && ip !== 'desconocida') {
-    try {
-      const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-      const geo = await geoRes.json();
-      if (geo?.city && geo?.country_name) {
-        ubicacion = `${geo.city}, ${geo.country_name}`;
-      }
-    } catch (e) {}
-  }
+  // Ubicación enviada desde el navegador del usuario (más fiable que ipapi desde servidor)
+  const ubicacionBody = req.body?.ubicacion || '';
+  let ubicacion = ubicacionBody || codeData.ubicacion || null;
 
   // Actualizar dispositivos
   const dispositivos = codeData.dispositivos || [];
