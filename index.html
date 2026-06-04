@@ -580,7 +580,7 @@ function startExam(){
   const extended=[...pool];
   while(extended.length<num) extended.push(...shuffle(pool));
   const qs=shuffle(extended).slice(0,num);
-  state={mode,numQ:num,tema,questions:qs,answers:new Array(num).fill(-1),current:0,timeLeft:80*60,timerInterval:null,examFinished:false};
+  state={mode,numQ:num,tema,questions:qs,answers:new Array(num).fill(-1),current:0,timeLeft:80*60,timerInterval:null,examFinished:false,shuffledOpts:{}};
   switchTab('examen');
   document.getElementById('tab-examen').style.display='';
   document.getElementById('tab-resultado').style.display='none';
@@ -606,9 +606,20 @@ function updateTimer(){
 }
 
 const LETTERS=['A','B','C'];
+// Preparar opciones barajadas por pregunta (se fija al primer render)
+function shuffleOptions(q, idx) {
+  if (!state.shuffledOpts) state.shuffledOpts = {};
+  if (!state.shuffledOpts[idx]) {
+    const order = [0,1,2].sort(() => Math.random() - 0.5);
+    state.shuffledOpts[idx] = { order, correct: order.indexOf(q.a) };
+  }
+  return state.shuffledOpts[idx];
+}
+
 function renderQuestion(){
   const q=state.questions[state.current];
   const ans=state.answers[state.current];
+  const shuffle=shuffleOptions(q, state.current);
   const fin=state.examFinished;
   const total=state.questions.length;
   const answered=state.answers.filter(a=>a>=0).length;
@@ -626,18 +637,18 @@ function renderQuestion(){
 
   const opts=document.getElementById('q-options');
   opts.innerHTML='';
-  q.opts.forEach((o,i)=>{
+  shuffle.order.forEach((origIdx, displayIdx)=>{
     const btn=document.createElement('button');
     btn.className='q-option';
-    btn.textContent=LETTERS[i]+') '+o;
+    btn.textContent=LETTERS[displayIdx]+') '+q.opts[origIdx];
     if(fin){
-      if(i===q.a) btn.classList.add('correct');
-      else if(i===ans) btn.classList.add('wrong');
+      if(origIdx===q.a) btn.classList.add('correct');
+      else if(displayIdx===ans) btn.classList.add('wrong');
     } else {
-      if(i===ans) btn.classList.add('selected');
+      if(displayIdx===ans) btn.classList.add('selected');
     }
     if(ans>=0||fin) btn.disabled=true;
-    else btn.onclick=()=>selectAnswer(i);
+    else btn.onclick=()=>selectAnswer(displayIdx);
     opts.appendChild(btn);
   });
 
@@ -703,8 +714,10 @@ function finishExam(){
   state.questions.forEach((q,i)=>{
     if(!temaMap[q.t]) temaMap[q.t]={c:0,w:0,b:0,tot:0};
     temaMap[q.t].tot++;
+    const sh=state.shuffledOpts?state.shuffledOpts[i]:null;
+    const correctDisplay=sh?sh.correct:q.a;
     if(state.answers[i]<0){blank++;temaMap[q.t].b++;}
-    else if(state.answers[i]===q.a){correct++;temaMap[q.t].c++;}
+    else if(state.answers[i]===correctDisplay){correct++;temaMap[q.t].c++;}
     else{wrong++;temaMap[q.t].w++;}
   });
   const pct=Math.round((correct/total)*100);
