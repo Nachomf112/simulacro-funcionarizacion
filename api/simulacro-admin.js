@@ -69,6 +69,7 @@ export default async function handler(req, res) {
         creadoEl: data.creadoEl, ultimoAcceso: data.ultimoAcceso||null,
         ip_registro: data.ip_registro||'-',
         dispositivos: data.dispositivos||[],
+        ubicacion: data.ubicacion||null,
         stats: { totalSimulacros: stats.totalSimulacros||0, media: stats.media||0, mejor: stats.mejor||0, aprobados: stats.aprobados||0 }
       });
     }
