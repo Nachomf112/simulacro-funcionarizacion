@@ -51,8 +51,8 @@ export default async function handler(req, res) {
     : /safari/i.test(userAgent) ? 'Safari' : 'Otro';
 
   // Ubicación enviada desde el navegador del usuario (más fiable que ipapi desde servidor)
-  const ubicacionBody = req.body?.ubicacion || '';
-  let ubicacion = ubicacionBody || codeData.ubicacion || null;
+  const ubicacionBody = req.body?.ubicacion || null;
+  let ubicacion = (ubicacionBody && ubicacionBody.length > 2) ? ubicacionBody : (codeData.ubicacion || null);
 
   // Actualizar dispositivos
   const dispositivos = codeData.dispositivos || [];
