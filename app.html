@@ -15,7 +15,11 @@ html,body{height:100%;font-family:"Segoe UI",Arial,sans-serif;background:#f0f4f8
 .app{min-height:100vh;display:flex;flex-direction:column}
 
 /* HEADER */
-.header{background:#003366;padding:0.85rem 1.25rem;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.inst-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:6px 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+.inst-bar img{height:32px;object-fit:contain}
+.inst-bar-right{font-size:11px;color:#666;text-align:right;line-height:1.4}
+.inst-bar-right strong{color:#003366;display:block;font-size:12px}
+.header{background:#003366;padding:0.75rem 1.25rem;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .header-title{color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px}
 .header-title svg{flex-shrink:0}
@@ -28,8 +32,8 @@ html,body{height:100%;font-family:"Segoe UI",Arial,sans-serif;background:#f0f4f8
 /* TABS */
 .tabs{display:flex;gap:3px;margin-top:0.75rem;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{padding:7px 14px;border-radius:8px 8px 0 0;border:none;font-size:12px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);white-space:nowrap;transition:all 0.15s}
-.tab.active{background:#f0f4f8;color:#003366}
+.tab{padding:7px 14px;border-radius:8px 8px 0 0;border:none;font-size:12px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);white-space:nowrap;transition:all 0.15s;border-bottom:2px solid transparent}
+.tab.active{background:#f0f4f8;color:#003366;border-bottom-color:#0070C0}
 .tab:hover:not(.active){background:rgba(255,255,255,0.18);color:#fff}
 .tab-badge{background:#e24b4a;color:#fff;border-radius:10px;padding:0 5px;font-size:10px;margin-left:4px;display:inline}
 
@@ -320,35 +324,59 @@ tr:hover td{background:#f7f9fc}
     </div>
 
     <div class="sec-title" style="margin-top:1rem">Información del examen</div>
-    <div class="tw">
-      <table>
-        <thead><tr><th style="width:40%">Parámetro</th><th>Detalle</th></tr></thead>
-        <tbody>
-          <tr><td>Tipo de prueba</td><td>Test · 3 alternativas por pregunta</td></tr>
-          <tr><td>Total preguntas</td><td>60 + 5 de reserva</td></tr>
-          <tr><td>Tiempo máximo</td><td>80 minutos</td></tr>
-          <tr><td>Penalización</td><td><span class="badge ba">Sin penalización</span> — errores y blancos valen 0</td></tr>
-          <tr><td>Puntuación</td><td>0 – 60 puntos (1 pto/pregunta correcta)</td></tr>
-          <tr><td>Mínimo para aprobar</td><td><strong>30 puntos</strong> (50% del total)</td></tr>
-          <tr><td>Peso oposición</td><td>60% de la nota final</td></tr>
-          <tr><td>Peso concurso (méritos)</td><td>40% de la nota final</td></tr>
-        </tbody>
-      </table>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px">
+      <div class="sc" style="border-left:3px solid #0070C0">
+        <div class="sl">Tipo de prueba</div>
+        <div style="font-size:13px;font-weight:700;color:#003366;margin-top:2px">Test · 3 alternativas</div>
+      </div>
+      <div class="sc" style="border-left:3px solid #0070C0">
+        <div class="sl">Preguntas</div>
+        <div style="font-size:13px;font-weight:700;color:#003366;margin-top:2px">60 + 5 reserva</div>
+      </div>
+      <div class="sc" style="border-left:3px solid #0070C0">
+        <div class="sl">Tiempo</div>
+        <div style="font-size:13px;font-weight:700;color:#003366;margin-top:2px">80 minutos</div>
+      </div>
+      <div class="sc" style="border-left:3px solid #1D9E75">
+        <div class="sl">Penalización</div>
+        <div style="font-size:13px;font-weight:700;color:#1D9E75;margin-top:2px">Sin penalización</div>
+      </div>
+      <div class="sc" style="border-left:3px solid #A32D2D">
+        <div class="sl">Mínimo aprobado</div>
+        <div style="font-size:13px;font-weight:700;color:#A32D2D;margin-top:2px">30 puntos (50%)</div>
+      </div>
+      <div class="sc" style="border-left:3px solid #5B1F8A">
+        <div class="sl">Peso oposición</div>
+        <div style="font-size:13px;font-weight:700;color:#5B1F8A;margin-top:2px">60% nota final</div>
+      </div>
     </div>
 
     <div class="sec-title" style="margin-top:1rem">Temario oficial (Anexo II BOE)</div>
-    <div class="tw">
-      <table>
-        <thead><tr><th style="width:15%">Tema</th><th>Contenido</th></tr></thead>
-        <tbody>
-          <tr><td><span class="badge bi">T1</span></td><td>Ley 39/2015 (Procedimiento Administrativo) y Ley 40/2015 (Régimen Jurídico)</td></tr>
-          <tr><td><span class="badge bp">T2</span></td><td>Personal funcionario: concepto, clases, derechos y deberes</td></tr>
-          <tr><td><span class="badge bt">T3</span></td><td>Adquisición y pérdida de la condición de funcionario. Situaciones administrativas</td></tr>
-          <tr><td><span class="badge ba">T4</span></td><td>Administración electrónica, registros, Oficinas de Asistencia, PAGe</td></tr>
-          <tr><td><span class="badge bc">T5</span></td><td>Contratos del sector público: concepto, clases, procedimiento de adjudicación</td></tr>
-          <tr><td><span class="badge br">T6</span></td><td>Presupuesto del Estado: concepto, estructura y créditos presupuestarios</td></tr>
-        </tbody>
-      </table>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin-bottom:10px">
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge bi" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T1</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Ley 39/2015 y Ley 40/2015</div><div style="font-size:11px;color:#888;margin-top:2px">Procedimiento administrativo y régimen jurídico</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge bp" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T2</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Personal funcionario</div><div style="font-size:11px;color:#888;margin-top:2px">Concepto, clases, derechos y deberes</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge bt" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T3</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Adquisición y pérdida</div><div style="font-size:11px;color:#888;margin-top:2px">Condición de funcionario y situaciones</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge ba" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T4</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Administración electrónica</div><div style="font-size:11px;color:#888;margin-top:2px">Registros, PAGe, sede electrónica, ENS</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge bc" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T5</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Contratos del sector público</div><div style="font-size:11px;color:#888;margin-top:2px">Concepto, clases y adjudicación · LCSP</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+        <span class="badge br" style="flex-shrink:0;margin-top:2px;font-size:12px;padding:3px 10px">T6</span>
+        <div><div style="font-size:13px;font-weight:700;color:#1a1a2e">Presupuesto del Estado</div><div style="font-size:11px;color:#888;margin-top:2px">Concepto, estructura y créditos · LGP</div></div>
+      </div>
     </div>
 
     <div id="last-result-card" style="display:none;margin-top:1rem">
