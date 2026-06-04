@@ -1,4 +1,4 @@
-// api/simulacro-auth.js — Login con registro de acceso en log
+// api/simulacro-auth.js
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -33,27 +33,41 @@ export default async function handler(req, res) {
   if (!codeData) return res.status(401).json({ error: 'Código no válido' });
   if (!codeData.activo) return res.status(403).json({ error: 'Código desactivado' });
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'desconocida';
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'desconocida';
   const now = new Date().toISOString();
 
-  // Detectar dispositivo desde UA
+  // Detectar dispositivo
   const userAgent = ua || req.headers['user-agent'] || '';
-  const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
   const isTablet = /ipad|tablet/i.test(userAgent);
+  const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
   const deviceType = isTablet ? 'tablet' : isMobile ? 'móvil' : 'escritorio';
-  const os = /windows/i.test(userAgent) ? 'Windows 10/11' : /mac/i.test(userAgent) ? 'macOS' :
-    /android/i.test(userAgent) ? 'Android' : /iphone|ipad/i.test(userAgent) ? 'iOS' : 'Otro';
-  const browser = /chrome/i.test(userAgent) && !/edge/i.test(userAgent) ? 'Chrome' :
-    /firefox/i.test(userAgent) ? 'Firefox' : /safari/i.test(userAgent) ? 'Safari' :
-    /edge/i.test(userAgent) ? 'Edge' : 'Otro';
+  const os = /windows/i.test(userAgent) ? 'Windows 10/11'
+    : /mac/i.test(userAgent) ? 'macOS'
+    : /android/i.test(userAgent) ? 'Android'
+    : /iphone|ipad/i.test(userAgent) ? 'iOS' : 'Otro';
+  const browser = /edg/i.test(userAgent) ? 'Edge'
+    : /chrome/i.test(userAgent) ? 'Chrome'
+    : /firefox/i.test(userAgent) ? 'Firefox'
+    : /safari/i.test(userAgent) ? 'Safari' : 'Otro';
 
-  // Registrar/actualizar dispositivo
+  // Geolocalización (dentro del flujo principal, no async)
+  let ubicacion = codeData.ubicacion || null;
+  if (!ubicacion && ip !== 'desconocida') {
+    try {
+      const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+      const geo = await geoRes.json();
+      if (geo?.city && geo?.country_name) {
+        ubicacion = `${geo.city}, ${geo.country_name}`;
+      }
+    } catch (e) {}
+  }
+
+  // Actualizar dispositivos
   const dispositivos = codeData.dispositivos || [];
   const existe = dispositivos.find(d => d.fingerprint === fingerprint);
-  const deviceInfo = { fingerprint, ip, deviceType, os, browser, primerAcceso: now, ultimoAcceso: now };
-
   if (!existe) {
-    dispositivos.push(deviceInfo);
+    dispositivos.push({ fingerprint, ip, deviceType, os, browser,
+      primerAcceso: now, ultimoAcceso: now });
   } else {
     existe.ultimoAcceso = now;
     existe.ip = ip;
@@ -64,30 +78,21 @@ export default async function handler(req, res) {
 
   codeData.dispositivos = dispositivos;
   codeData.ultimoAcceso = now;
+  if (ubicacion) codeData.ubicacion = ubicacion;
   await redisSet(key, codeData);
 
-  // Guardar log de acceso
+  // Log de acceso
   const logKey = `simulacro:log:${Date.now()}`;
   await redisSet(logKey, {
-    tipo: 'acceso', nombre: codeData.nombre, email: codeData.email||'',
+    tipo: 'acceso', nombre: codeData.nombre, email: codeData.email || '',
     codigo: codigo.toUpperCase(), ip, deviceType, os, browser,
-    fecha: now.split('T')[0], hora: now.split('T')[1]?.slice(0,5) || ''
+    fecha: now.split('T')[0], hora: now.split('T')[1]?.slice(0, 5) || '',
+    ubicacion: ubicacion || ''
   });
 
-  // Geolocalización async (sin bloquear)
-  fetch(`https://ipapi.co/${ip}/json/`).then(r=>r.json()).then(geo=>{
-    if (geo?.city) {
-      redisGet(key).then(d => {
-        if (d) {
-          d.ubicacion = `${geo.city}, ${geo.country_name}`;
-          redisSet(key, d);
-        }
-      });
-    }
-  }).catch(()=>{});
-
   return res.status(200).json({
-    ok: true, equipo: codeData.equipo, nombre: codeData.nombre||codigo.toUpperCase(),
-    codigo: codigo.toUpperCase(), email: codeData.email||''
+    ok: true, equipo: codeData.equipo,
+    nombre: codeData.nombre || codigo.toUpperCase(),
+    codigo: codigo.toUpperCase(), email: codeData.email || ''
   });
 }
