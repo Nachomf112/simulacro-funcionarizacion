@@ -94,6 +94,11 @@ tr:hover td{background:#f7f9fc}
 .cfg-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:5px}
 .cfg-row input,.cfg-row select{width:100%;padding:9px 12px;border-radius:8px;border:1px solid #cdd5e0;font-size:13px;color:#111}
 .cfg-row input:focus,.cfg-row select:focus{outline:2px solid #0070C0;border-color:#0070C0}
+.cfg-slider{margin-bottom:8px}
+.cfg-quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.qbtn{padding:5px 12px;border-radius:7px;border:1px solid #cdd5e0;background:#fff;color:#003366;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.12s;font-family:inherit}
+.qbtn:hover{background:#f0f7ff;border-color:#0070C0}
+.qbtn-active,.qbtn.active{background:#003366;color:#fff;border-color:#003366}
 
 /* QUESTION */
 .q-header{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:8px}
@@ -319,7 +324,17 @@ tr:hover td{background:#f7f9fc}
       <div class="cfg-row">
         <div>
           <div class="cfg-label">Número de preguntas: <strong id="cfg-num-val">60</strong></div>
-          <input type="range" id="cfg-num" min="5" max="120" step="5" value="60" oninput="document.getElementById('cfg-num-val').textContent=this.value" style="accent-color:#0070C0">
+          <input type="range" id="cfg-num" min="5" max="120" step="5" value="60"
+            oninput="document.getElementById('cfg-num-val').textContent=this.value;document.querySelectorAll('.qbtn').forEach(b=>{b.classList.toggle('active',parseInt(b.textContent)===parseInt(this.value));})"
+            style="accent-color:#0070C0;width:100%;display:block"
+            class="cfg-slider">
+          <div class="cfg-quick-btns">
+            <button class="qbtn" onclick="setNum(5)">5</button>
+            <button class="qbtn" onclick="setNum(10)">10</button>
+            <button class="qbtn" onclick="setNum(20)">20</button>
+            <button class="qbtn qbtn-active" onclick="setNum(60)">60</button>
+            <button class="qbtn" onclick="setNum(120)">120</button>
+          </div>
         </div>
         <div style="display:flex;align-items:flex-end">
           <button class="btn btn-success" style="width:100%;justify-content:center" onclick="startExam()">
@@ -633,6 +648,16 @@ let state = {
 };
 
 function shuffle(arr){return arr.slice().sort(()=>Math.random()-0.5)}
+
+function setNum(n){
+  const slider=document.getElementById('cfg-num');
+  const label=document.getElementById('cfg-num-val');
+  if(slider)slider.value=n;
+  if(label)label.textContent=n;
+  document.querySelectorAll('.qbtn').forEach(b=>{
+    b.classList.toggle('active',parseInt(b.textContent)===n);
+  });
+}
 
 function startExam(){
   const mode=document.getElementById('cfg-mode').value;
