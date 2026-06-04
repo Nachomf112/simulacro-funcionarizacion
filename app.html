@@ -866,6 +866,40 @@ function loadHistory(){
 
 function renderLastResult(){
   const h=loadHistory();
+  // ── Quick Stats ──
+  const qs=document.getElementById('quick-stats');
+  if(qs){
+    if(h.length){
+      qs.style.display='block';
+      const total=h.length;
+      const aprobados=h.filter(e=>e.passed).length;
+      const media=Math.round(h.reduce((a,e)=>a+e.pct,0)/total);
+      const mejor=Math.max(...h.map(e=>e.pct));
+      const acc={};
+      h.forEach(e=>{Object.entries(e.temaMap||{}).forEach(([t,v])=>{
+        if(!acc[t])acc[t]={c:0,tot:0};
+        acc[t].c+=v.c;acc[t].tot+=v.tot;
+      });});
+      let debilT=null,debilPct=100;
+      Object.entries(acc).forEach(([t,v])=>{
+        const p=v.tot>0?Math.round((v.c/v.tot)*100):0;
+        if(p<debilPct){debilPct=p;debilT=t;}
+      });
+      const TEMAS_SHORT={1:'Ley 39/40',2:'Personal',3:'Adquis.',4:'Adm.Elec.',5:'Contratos',6:'Presupuesto'};
+      const qsTotal=document.getElementById('qs-total');
+      const qsAprobados=document.getElementById('qs-aprobados');
+      const qsMedia=document.getElementById('qs-media');
+      const qsMejor=document.getElementById('qs-mejor');
+      const qsDebil=document.getElementById('qs-debil');
+      if(qsTotal)qsTotal.textContent=total;
+      if(qsAprobados)qsAprobados.textContent=aprobados;
+      if(qsMedia){qsMedia.textContent=media+'%';qsMedia.className='sv '+(media>=50?'ok':'danger');}
+      if(qsMejor)qsMejor.textContent=mejor+'%';
+      if(qsDebil&&debilT)qsDebil.textContent=TEMAS_SHORT[debilT]+' ('+debilPct+'%)';
+    } else {
+      qs.style.display='none';
+    }
+  }
   if(!h.length) return;
   const e=h[0];
   const card=document.getElementById('last-result-card');
