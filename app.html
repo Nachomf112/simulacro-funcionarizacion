@@ -331,6 +331,32 @@ tr:hover td{background:#f7f9fc}
       </div>
     </div>
 
+    <div id="quick-stats" style="display:none;margin-top:0.75rem">
+      <div class="sec-title" style="margin-top:0">Tu progreso</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:0.75rem">
+        <div class="sc" style="border-left:3px solid #185FA5">
+          <div class="sl">Simulacros</div>
+          <div class="sv info" id="qs-total">0</div>
+        </div>
+        <div class="sc" style="border-left:3px solid #1D9E75">
+          <div class="sl">Aprobados</div>
+          <div class="sv ok" id="qs-aprobados">0</div>
+        </div>
+        <div class="sc" style="border-left:3px solid #BA7517">
+          <div class="sl">Nota media</div>
+          <div class="sv warn" id="qs-media">—</div>
+        </div>
+        <div class="sc" style="border-left:3px solid #5B1F8A">
+          <div class="sl">Mejor nota</div>
+          <div class="sv purple" id="qs-mejor">—</div>
+        </div>
+        <div class="sc" style="border-left:3px solid #A32D2D">
+          <div class="sl">Tema débil</div>
+          <div class="sv" id="qs-debil" style="font-size:12px;color:#A32D2D">—</div>
+        </div>
+      </div>
+    </div>
+
     <div class="sec-title" style="margin-top:1rem">Información del examen</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px">
       <div class="sc" style="border-left:3px solid #0070C0">
