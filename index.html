@@ -307,13 +307,14 @@ tr:hover td{background:#f7f9fc}
       <div class="cfg-row">
         <div>
           <div class="cfg-label">Número de preguntas: <strong id="cfg-num-val">60</strong></div>
-          <input type="range" id="cfg-num" min="5" max="60" step="5" value="60" oninput="document.getElementById('cfg-num-val').textContent=this.value">
+          <input type="range" id="cfg-num" min="5" max="120" step="5" value="60" oninput="document.getElementById('cfg-num-val').textContent=this.value" style="accent-color:#0070C0">
         </div>
         <div style="display:flex;align-items:flex-end">
           <button class="btn btn-success" style="width:100%;justify-content:center" onclick="startExam()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Comenzar simulacro
           </button>
+          <div id="repaso-info" style="display:none;margin-top:8px;font-size:12px;color:#0070C0;font-weight:600;text-align:center"></div>
         </div>
       </div>
     </div>
@@ -594,6 +595,8 @@ function startExam(){
   } else {
     document.getElementById('timer-chip').style.display='none';
   }
+  // En modo repaso mostrar respuesta inmediatamente como en estudio
+  if(mode==='repaso') state.mode='study';
 }
 
 function updateTimer(){
@@ -750,8 +753,14 @@ function finishExam(){
     </div>`;
   });
 
+  // Guardar detalle de respuestas para modo repaso
+  const detalle=state.questions.map((q,i)=>{
+    const sh=state.shuffledOpts?state.shuffledOpts[i]:null;
+    const correctDisplay=sh?sh.correct:q.a;
+    return {id:q.id, ok: state.answers[i]===correctDisplay};
+  });
   saveHistory({date:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}),
-    mode:state.mode,total,correct,wrong,blank,pct,passed,temaMap,
+    mode:state.mode,total,correct,wrong,blank,pct,passed,temaMap,detalle,
     time:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})});
 
   document.getElementById('tab-resultado').style.display='';
@@ -1239,6 +1248,20 @@ function setLoginError(msg){
   el.textContent=msg;el.style.display='block';
   setTimeout(()=>el.style.display='none',4000);
 }
+
+document.getElementById('cfg-mode').addEventListener('change', function(){
+  const info = document.getElementById('repaso-info');
+  if(this.value==='repaso'){
+    const tema=parseInt(document.getElementById('cfg-tema').value);
+    const fallos=getFailedQuestions(tema);
+    info.style.display='block';
+    info.textContent = fallos.length > 0
+      ? '🔁 ' + fallos.length + ' preguntas falladas disponibles'
+      : '⚠️ Sin fallos registrados aún. Haz primero un simulacro.';
+  } else {
+    info.style.display='none';
+  }
+});
 
 document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
