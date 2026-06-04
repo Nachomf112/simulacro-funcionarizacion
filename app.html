@@ -1362,7 +1362,18 @@ window.saveHistory=function(entry){
 const _origLoad=window.loadHistory;
 window.loadHistory=function(){
   const key='simh_'+(session.codigo||'local');
-  try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];}
+  try{
+    const nuevo=JSON.parse(localStorage.getItem(key)||'[]');
+    if(nuevo.length) return nuevo;
+    // Migrar historial antiguo si existe
+    const viejo=JSON.parse(localStorage.getItem('ciemat_exam_h')||'[]');
+    if(viejo.length){
+      localStorage.setItem(key,JSON.stringify(viejo));
+      localStorage.removeItem('ciemat_exam_h');
+      return viejo;
+    }
+    return [];
+  }catch(e){return[];}
 };
 
 // ── RANKING ──
