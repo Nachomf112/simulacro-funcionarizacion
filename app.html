@@ -865,17 +865,32 @@ function reviewExam(){
   list.innerHTML='';
   state.questions.forEach((q,i)=>{
     const ans=state.answers[i];
-    const ok=ans===q.a;
+    const sh=state.shuffledOpts?state.shuffledOpts[i]:null;
+    const correctDisplay=sh?sh.correct:q.a;
+    const ok=ans===correctDisplay;
     const bl=ans<0;
     const badgeCls=bl?'bt':ok?'ba':'br';
     const badgeTxt=bl?'En blanco':ok?'Correcta':'Incorrecta';
+    let optsHtml='';
+    if(sh){
+      sh.order.forEach((origIdx,displayIdx)=>{
+        const isCorrect=origIdx===q.a;
+        const isSelected=displayIdx===ans;
+        let cls='';
+        if(isCorrect) cls=' correct';
+        else if(isSelected&&!ok) cls=' wrong';
+        optsHtml+=`<div class="rev-opt${cls}">${LETTERS[displayIdx]}) ${q.opts[origIdx]}${isCorrect?' ✓':isSelected&&!ok?' ✗':''}</div>`;
+      });
+    } else {
+      optsHtml=q.opts.map((o,j)=>`<div class="rev-opt${j===q.a?' correct':j===ans&&j!==q.a?' wrong':''}">${LETTERS[j]}) ${o}${j===q.a?' ✓':j===ans&&j!==q.a?' ✗':''}</div>`).join('');
+    }
     list.innerHTML+=`<div class="rev-item">
       <div class="rev-meta">
         <span style="font-size:11px;color:#888;font-weight:700">P.${i+1} · Tema ${q.t} · ${TEMAS[q.t]}</span>
         <span class="badge ${badgeCls}">${badgeTxt}</span>
       </div>
       <div class="rev-q">${q.q}</div>
-      ${q.opts.map((o,j)=>`<div class="rev-opt${j===q.a?' correct':j===ans&&!ok?' wrong':''}">${LETTERS[j]}) ${o}${j===q.a?' ✓':j===ans&&!ok?' ✗':''}</div>`).join('')}
+      ${optsHtml}
       <div class="explanation" style="margin-top:8px"><strong>Explicación:</strong> ${q.exp}</div>
     </div>`;
   });
