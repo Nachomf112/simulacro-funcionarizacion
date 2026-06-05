@@ -6,14 +6,10 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 async function redisSet(key, value) {
-  const res = await fetch(`${UPSTASH_URL}/set/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${UPSTASH_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ value: JSON.stringify(value) })
-  });
+  const res = await fetch(
+    `${UPSTASH_URL}/set/${encodeURIComponent(key)}/${encodeURIComponent(JSON.stringify(value))}`,
+    { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } }
+  );
   return res.json();
 }
 
