@@ -101,5 +101,17 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, stats });
   }
 
+  if (req.method === 'DELETE') {
+    const { codigo: cod } = req.body || {};
+    if (!cod) return res.status(400).json({ error: 'Falta código' });
+    const k1 = `simulacro:history:${cod.toUpperCase()}`;
+    const k2 = `simulacro:stats:${cod.toUpperCase()}`;
+    await fetch(`${UPSTASH_URL}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify([["DEL", k1], ["DEL", k2]])
+    });
+    return res.status(200).json({ ok: true, deleted: [k1, k2] });
+  }
   return res.status(405).json({ error: 'Método no permitido' });
 }
