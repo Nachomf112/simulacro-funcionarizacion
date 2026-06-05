@@ -6,19 +6,30 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 async function redisSet(key, value) {
-  const res = await fetch(
-    `${UPSTASH_URL}/set/${encodeURIComponent(key)}/${encodeURIComponent(JSON.stringify(value))}`,
-    { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } }
-  );
+  const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify([["SET", key, JSON.stringify(value)]])
+  });
   return res.json();
 }
 
 async function redisGet(key) {
-  const res = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(key)}`, {
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+  const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify([["GET", key]])
   });
   const data = await res.json();
-  return data.result ? JSON.parse(data.result) : null;
+  const result = data?.[0]?.result;
+  if (!result) return null;
+  try { return JSON.parse(result); } catch { return null; }
 }
 
 async function redisZadd(key, score, member) {
