@@ -48,6 +48,12 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── LÍMITE DE USUARIOS ──
+  const MAX_USUARIOS = 10;
+  if (keys.length >= MAX_USUARIOS) {
+    return res.status(403).json({ error: `El simulacro está en modo privado y se ha alcanzado el límite de ${MAX_USUARIOS} usuarios. Para solicitar acceso contacta con Nacho Menárguez en info@menarguez-ia.com` });
+  }
+
   // Generar código único
   let codigo = generateCode(nombre);
   let attempts = 0;
