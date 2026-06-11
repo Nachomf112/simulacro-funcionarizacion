@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       const stats = await redisGet(`simulacro:stats:${codigo}`) || {};
       totalUsuarios++;
       if (data.activo) activos++; else inactivos++;
-      
+
       const fechaReg = data.creadoEl?.split('T')[0] || '';
       registrosPorDia[fechaReg] = (registrosPorDia[fechaReg] || 0) + 1;
 
@@ -70,11 +70,11 @@ export default async function handler(req, res) {
         ip_registro: data.ip_registro||'-',
         dispositivos: data.dispositivos||[],
         ubicacion: data.ubicacion||null,
+        limiteSimulacros: data.limiteSimulacros||50,
         stats: { totalSimulacros: stats.totalSimulacros||0, media: stats.media||0, mejor: stats.mejor||0, aprobados: stats.aprobados||0 }
       });
     }
 
-    // Logs de acceso (últimos 100)
     const logs = [];
     for (const key of logKeys.slice(-100)) {
       const log = await redisGet(key);
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
     const key = `simulacro:code:${codigo.toUpperCase()}`;
     if (await redisGet(key)) return res.status(409).json({ error: 'Código ya existe' });
     await redisSet(key, { nombre: nombre||codigo, email: email||'', equipo: equipo||'Manual',
-      activo: true, plan: 'free', creadoEl: new Date().toISOString(), dispositivos: [], ip_registro: 'admin' });
+      activo: true, creadoEl: new Date().toISOString(), dispositivos: [], ip_registro: 'admin', limiteSimulacros: 50 });
     return res.status(200).json({ ok: true, codigo: codigo.toUpperCase() });
   }
 
@@ -123,7 +123,8 @@ export default async function handler(req, res) {
     await redisSet(key, data);
     return res.status(200).json({ ok: true });
   }
-// ── ELIMINAR CÓDIGO ──
+
+  // ── ELIMINAR CÓDIGO ──
   if (req.method === 'DELETE' && action === 'delete-code') {
     const { codigo } = req.body;
     const up = codigo.toUpperCase();
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  // ── SET LÍMITE SIMULACROS ──        ← PEGA AQUÍ
+  // ── SET LÍMITE SIMULACROS ──
   if (req.method === 'POST' && action === 'set-limit') {
     const { codigo, limite } = req.body;
     const key = `simulacro:code:${codigo.toUpperCase()}`;
@@ -144,17 +145,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, limite: data.limiteSimulacros });
   }
 
-  return res.status(400).json({ error: 'Acción no reconocida' });  // línea 137
-}
-  // ── ELIMINAR CÓDIGO ──
-  if (req.method === 'DELETE' && action === 'delete-code') {
-    const { codigo } = req.body;
-    const up = codigo.toUpperCase();
-    await redisDel(`simulacro:code:${up}`);
-    await redisDel(`simulacro:stats:${up}`);
-    await redisDel(`simulacro:history:${up}`);
-    return res.status(200).json({ ok: true });
-  }
-  
   return res.status(400).json({ error: 'Acción no reconocida' });
 }
