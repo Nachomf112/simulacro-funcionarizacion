@@ -55,7 +55,8 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const stats = await redisGet(statsKey) || {};
     const history = await redisGet(histKey) || [];
-    return res.status(200).json({ stats, history });
+    const userData = await redisGet(`simulacro:code:${codigoUp}`) || {};
+    return res.status(200).json({ stats, history, limite: userData.limiteSimulacros||50 });
   }
 
   // POST → guardar nuevo simulacro
