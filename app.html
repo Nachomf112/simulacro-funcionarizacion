@@ -1688,7 +1688,14 @@ window.saveHistory=function(entry){
   const key='simh_'+(session.codigo||'local');
   try{const h=JSON.parse(localStorage.getItem(key)||'[]');h.unshift(entry);if(h.length>50)h.pop();localStorage.setItem(key,JSON.stringify(h));}catch(e){}
   if(session.codigo){
-    fetch(API+'/simulacro-stats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo:session.codigo,resultado:entry})}).catch(()=>{});
+    fetch(API+'/simulacro-stats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo:session.codigo,resultado:entry})})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.limitReached){
+        showToast('⚠️ Has alcanzado tu límite de simulacros. Contacta con info@menarguez-ia.com para ampliar tu acceso.','warn');
+      }
+    })
+    .catch(()=>{});
   }
 };
 
