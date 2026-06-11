@@ -660,7 +660,20 @@ function setNum(n){
     b.classList.toggle('active',parseInt(b.textContent)===n);
   });
 }
-
+function getFailedQuestions(tema){
+  const h=loadHistory();
+  const failedIds=new Set();
+  h.forEach(e=>{
+    (e.detalle||[]).forEach(d=>{
+      if(!d.ok) failedIds.add(d.id);
+    });
+  });
+  return BANCO.filter(q=>{
+    if(!failedIds.has(q.id)) return false;
+    if(tema===0) return true;
+    return q.t===tema;
+  });
+}
 async function startExam(){
   // Comprobar límite antes de empezar
   if(session.codigo){
