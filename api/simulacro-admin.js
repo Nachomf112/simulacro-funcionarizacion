@@ -123,8 +123,7 @@ export default async function handler(req, res) {
     await redisSet(key, data);
     return res.status(200).json({ ok: true });
   }
-
-  // ── ELIMINAR CÓDIGO ──
+// ── ELIMINAR CÓDIGO ──
   if (req.method === 'DELETE' && action === 'delete-code') {
     const { codigo } = req.body;
     const up = codigo.toUpperCase();
@@ -134,5 +133,28 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
+  // ── SET LÍMITE SIMULACROS ──        ← PEGA AQUÍ
+  if (req.method === 'POST' && action === 'set-limit') {
+    const { codigo, limite } = req.body;
+    const key = `simulacro:code:${codigo.toUpperCase()}`;
+    const data = await redisGet(key);
+    if (!data) return res.status(404).json({ error: 'No encontrado' });
+    data.limiteSimulacros = parseInt(limite) || 50;
+    await redisSet(key, data);
+    return res.status(200).json({ ok: true, limite: data.limiteSimulacros });
+  }
+
+  return res.status(400).json({ error: 'Acción no reconocida' });  // línea 137
+}
+  // ── ELIMINAR CÓDIGO ──
+  if (req.method === 'DELETE' && action === 'delete-code') {
+    const { codigo } = req.body;
+    const up = codigo.toUpperCase();
+    await redisDel(`simulacro:code:${up}`);
+    await redisDel(`simulacro:stats:${up}`);
+    await redisDel(`simulacro:history:${up}`);
+    return res.status(200).json({ ok: true });
+  }
+  
   return res.status(400).json({ error: 'Acción no reconocida' });
 }
