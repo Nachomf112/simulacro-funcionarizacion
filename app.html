@@ -1691,7 +1691,18 @@ document.getElementById('cfg-mode').addEventListener('change', function(){
     info.style.display='none';
   }
 });
-
+document.getElementById('cfg-tema').addEventListener('change', function(){
+  const info = document.getElementById('repaso-info');
+  const mode = document.getElementById('cfg-mode').value;
+  if(mode==='repaso'){
+    const tema=parseInt(this.value);
+    const fallos=getFailedQuestions(tema);
+    info.style.display='block';
+    info.textContent = fallos.length > 0
+      ? '🔁 ' + fallos.length + ' preguntas falladas disponibles'
+      : '⚠️ Sin fallos registrados para ese tema. Haz primero un simulacro.';
+  }
+});
 document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 function doLogout(){
