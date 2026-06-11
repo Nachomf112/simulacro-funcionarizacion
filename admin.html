@@ -513,7 +513,20 @@ async function deleteCode(codigo) {
     loadAll();
   } catch (e) { showToast('Error', 'err'); }
 }
-
+async function setLimit(codigo, actual) {
+  const nuevo = prompt(`Límite de simulacros para ${codigo} (actual: ${actual}):`, actual);
+  if (!nuevo || isNaN(nuevo) || parseInt(nuevo) < 1) return;
+  try {
+    const r = await fetch(`${API}/simulacro-admin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'set-limit', codigo, limite: parseInt(nuevo) })
+    });
+    const d = await r.json();
+    if (d.ok) showToast(`✓ Límite actualizado a ${nuevo} simulacros`, 'ok');
+    loadAll();
+  } catch(e) { showToast('Error', 'err'); }
+}
 function exportCSV() {
   const rows = [['Fecha','Hora','Nombre','Código','Dispositivo','OS','Navegador','IP']];
   allAccesos.forEach(l => rows.push([l.fecha||'', l.hora||'', l.nombre||'', l.codigo||'', l.deviceType||'', l.os||'', l.browser||'', l.ip||'']));
