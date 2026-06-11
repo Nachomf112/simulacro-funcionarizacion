@@ -691,11 +691,18 @@ async function startExam(){
   const mode=document.getElementById('cfg-mode').value;
   const num=parseInt(document.getElementById('cfg-num').value);
   const tema=parseInt(document.getElementById('cfg-tema').value);
-  let pool=tema===0?BANCO:BANCO.filter(q=>q.t===tema);
-  if(pool.length===0){showToast('No hay preguntas para ese tema','err');return}
-  const extended=[...pool];
-  while(extended.length<num) extended.push(...shuffle(pool));
-  const qs=shuffle(extended).slice(0,num);
+  let pool,qs;
+  if(mode==='repaso'){
+    const fallos=getFailedQuestions(tema);
+    if(fallos.length===0){showToast('⚠️ Sin fallos registrados para ese tema. Haz primero un simulacro.','warn');return;}
+    qs=shuffle(fallos).slice(0,num);
+  } else {
+    pool=tema===0?BANCO:BANCO.filter(q=>q.t===tema);
+    if(pool.length===0){showToast('No hay preguntas para ese tema','err');return}
+    const extended=[...pool];
+    while(extended.length<num) extended.push(...shuffle(pool));
+    qs=shuffle(extended).slice(0,num);
+  }
   state={mode,numQ:num,tema,questions:qs,answers:new Array(num).fill(-1),current:0,timeLeft:80*60,timerInterval:null,examFinished:false,shuffledOpts:{}};
   switchTab('examen');
   document.getElementById('tab-examen').style.display='';
