@@ -416,6 +416,7 @@ function renderUsers() {
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="act-btn" onclick="resetFP('${u.codigo}')" title="Resetear dispositivo">Reset FP</button>
           <button class="act-btn ${u.activo?'':'success'}" onclick="toggleCode('${u.codigo}')">${u.activo?'Desactivar':'Activar'}</button>
+          <button class="act-btn" onclick="setLimit('${u.codigo}',${u.limiteSimulacros||50})" title="Cambiar límite de simulacros">📊 ${u.limiteSimulacros||50}</button>
           <button class="act-btn danger" onclick="deleteCode('${u.codigo}')">✕</button>
         </div>
       </td>
