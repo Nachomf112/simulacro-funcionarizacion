@@ -661,7 +661,20 @@ function setNum(n){
   });
 }
 
-function startExam(){
+async function startExam(){
+  // Comprobar límite antes de empezar
+  if(session.codigo){
+    try{
+      const r=await fetch(API+'/simulacro-stats?codigo='+session.codigo);
+      const d=await r.json();
+      const limite=d.limite||50;
+      const total=d.stats?.totalSimulacros||0;
+      if(total>=limite){
+        showToast('⚠️ Has alcanzado tu límite de '+limite+' simulacros. Contacta con info@menarguez-ia.com para ampliar tu acceso.','warn');
+        return;
+      }
+    }catch(e){}
+  }
   const mode=document.getElementById('cfg-mode').value;
   const num=parseInt(document.getElementById('cfg-num').value);
   const tema=parseInt(document.getElementById('cfg-tema').value);
