@@ -1,6 +1,5 @@
 // api/simulacro-stats.js
 // Guardar y leer estadísticas de simulacros por usuario
-// Patrón idéntico a save-profile-fit.js de Fit AI
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -41,7 +40,7 @@ async function redisZadd(key, score, member) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -64,10 +63,21 @@ export default async function handler(req, res) {
     const { resultado } = req.body || {};
     if (!resultado) return res.status(400).json({ error: 'Falta resultado' });
 
-    // Actualizar historial (máx 50)
+    // ── COMPROBAR LÍMITE DE SIMULACROS ──
+    const userData = await redisGet(`simulacro:code:${codigoUp}`);
+    const limite = userData?.limiteSimulacros || 50;
+    const statsActual = await redisGet(statsKey) || {};
+    if ((statsActual.totalSimulacros || 0) >= limite) {
+      return res.status(403).json({
+        error: `Has alcanzado el límite de ${limite} simulacros. Contacta con Nacho Menárguez en info@menarguez-ia.com para ampliar tu acceso.`,
+        limitReached: true
+      });
+    }
+
+    // Actualizar historial (máx 200)
     const history = await redisGet(histKey) || [];
     history.unshift({ ...resultado, fecha: new Date().toISOString() });
-    if (history.length > 50) history.pop();
+    if (history.length > 200) history.pop();
     await redisSet(histKey, history);
 
     // Actualizar estadísticas globales
@@ -95,7 +105,7 @@ export default async function handler(req, res) {
     stats.ultimoSimulacro = new Date().toISOString();
     await redisSet(statsKey, stats);
 
-    // Actualizar ranking global (sorted set por media)
+    // Actualizar ranking global
     await redisZadd('simulacro:ranking', stats.media, codigoUp);
 
     return res.status(200).json({ ok: true, stats });
@@ -113,5 +123,6 @@ export default async function handler(req, res) {
     });
     return res.status(200).json({ ok: true, deleted: [k1, k2] });
   }
+
   return res.status(405).json({ error: 'Método no permitido' });
 }
