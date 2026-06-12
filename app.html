@@ -684,7 +684,17 @@ async function startExam(){
       const limite=d.limite||50;
       const total=d.stats?.totalSimulacros||0;
       if(total>=limite){
-        showToast('⚠️ Has alcanzado tu límite de '+limite+' simulacros. Contacta con info@menarguez-ia.com para ampliar tu acceso.','warn');
+        showToast('⚠️ Has alcanzado tu límite de '+limite+' simulacros. Contacta con info@imenarguez-ia.com para ampliar tu acceso.','warn');
+        fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            nombre:session.nombre||session.codigo,
+            codigo:session.codigo,
+            totalSimulacros:total,
+            limite:limite
+          })
+        }).catch(()=>{});
         return;
       }
     }catch(e){}
