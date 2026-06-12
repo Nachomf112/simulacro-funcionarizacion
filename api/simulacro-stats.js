@@ -69,6 +69,17 @@ export default async function handler(req, res) {
     const limite = userData?.limiteSimulacros || 50;
     const statsActual = await redisGet(statsKey) || {};
     if ((statsActual.totalSimulacros || 0) >= limite) {
+      // Notificar a Nacho via Make
+      fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: userData?.nombre || codigoUp,
+          codigo: codigoUp,
+          totalSimulacros: statsActual.totalSimulacros || 0,
+          limite
+        })
+      }).catch(() => {});
       return res.status(403).json({
         error: `Has alcanzado el límite de ${limite} simulacros. Contacta con Nacho Menárguez en info@menarguez-ia.com para ampliar tu acceso.`,
         limitReached: true
