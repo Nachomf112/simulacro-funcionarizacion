@@ -10,7 +10,6 @@
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--green:#39d353;--blue:#58a6ff;--yellow:#d29922;--red:#f85149;--purple:#bc8cff;--text:#e6edf3;--text2:#8b949e;--font:'Segoe UI',system-ui,sans-serif}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
 
-  
 /* LOGIN */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-height(135deg,#0d1117,#161b22)}
 .login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;width:100%;max-width:360px}
@@ -236,6 +235,10 @@ tr:hover td{background:rgba(255,255,255,0.02)}
               <option value="escritorio">Escritorio</option>
               <option value="tablet">Tablet</option>
             </select>
+            <select class="filter-select" id="filter-usuario" onchange="filterAccesos()">
+              <option value="">Todos los usuarios</option>
+            </select>
+            <button class="act-btn danger" onclick="clearLogs()">🗑 Borrar todos</button>
             <button class="act-btn" onclick="exportCSV()">⬇ CSV</button>
           </div>
         </div>
@@ -243,9 +246,9 @@ tr:hover td{background:rgba(255,255,255,0.02)}
           <table>
             <thead><tr>
               <th>Fecha</th><th>Hora</th><th>Nombre</th><th>Código</th>
-              <th>Dispositivo</th><th>OS</th><th>Navegador</th><th>IP</th>
+              <th>Dispositivo</th><th>OS</th><th>Navegador</th><th>IP</th><th></th>
             </tr></thead>
-            <tbody id="accesos-tbody"><tr><td colspan="8" class="no-data">Cargando...</td></tr></tbody>
+            <tbody id="accesos-tbody"><tr><td colspan="9" class="no-data">Cargando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -332,7 +335,6 @@ function renderKPIs(k) {
 
 // ── CHARTS ──
 function renderCharts(kpis, regPorDia) {
-  // Registros últimos 14 días
   const dias = [];
   const vals = [];
   for (let i = 13; i >= 0; i--) {
@@ -429,14 +431,23 @@ function filterUsers() { renderUsers(); }
 
 // ── ACCESOS ──
 function renderAccesos() {
+  // Actualizar filtro de usuarios
+  const filterU = document.getElementById('filter-usuario');
+  const currentU = filterU.value;
+  const nombres = [...new Set(allAccesos.map(l=>l.nombre).filter(Boolean))].sort();
+  filterU.innerHTML = '<option value="">Todos los usuarios</option>' +
+    nombres.map(n=>`<option value="${n}" ${n===currentU?'selected':''}>${n}</option>`).join('');
+
   let logs = [...allAccesos];
   const q = document.getElementById('search-accesos')?.value.toLowerCase() || '';
   const dev = document.getElementById('filter-device')?.value || '';
-  if (q) logs = logs.filter(l => (l.nombre+l.codigo+l.ip+l.email).toLowerCase().includes(q));
+  const usuario = document.getElementById('filter-usuario')?.value || '';
+  if (q) logs = logs.filter(l => (l.nombre+l.codigo+l.ip+(l.email||'')).toLowerCase().includes(q));
   if (dev) logs = logs.filter(l => l.deviceType === dev);
+  if (usuario) logs = logs.filter(l => l.nombre === usuario);
 
   if (!logs.length) {
-    document.getElementById('accesos-tbody').innerHTML = '<tr><td colspan="8" class="no-data">No hay registros de acceso</td></tr>';
+    document.getElementById('accesos-tbody').innerHTML = '<tr><td colspan="9" class="no-data">No hay registros de acceso</td></tr>';
     return;
   }
 
@@ -451,6 +462,7 @@ function renderAccesos() {
     <td style="color:var(--text2)">${l.os||'—'}</td>
     <td style="color:var(--text2)">${l.browser||'—'}</td>
     <td style="font-family:monospace;font-size:11px;color:var(--text2)">${l.ip||'—'}</td>
+    <td><button class="act-btn danger" onclick="deleteLog('${l.logKey||''}')">✕</button></td>
   </tr>`).join('');
 }
 
@@ -494,7 +506,7 @@ async function toggleCode(codigo) {
 async function resetFP(codigo) {
   if (!confirm('¿Resetear dispositivo de ' + codigo + '? El usuario podrá acceder desde cualquier dispositivo.')) return;
   try {
-    const r = await fetch(`${API}/simulacro-admin`, {
+    await fetch(`${API}/simulacro-admin`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
       body: JSON.stringify({ action: 'reset-fp', codigo })
     });
@@ -514,6 +526,7 @@ async function deleteCode(codigo) {
     loadAll();
   } catch (e) { showToast('Error', 'err'); }
 }
+
 async function setLimit(codigo, actual) {
   const nuevo = prompt(`Límite de simulacros para ${codigo} (actual: ${actual}):`, actual);
   if (!nuevo || isNaN(nuevo) || parseInt(nuevo) < 1) return;
@@ -528,6 +541,33 @@ async function setLimit(codigo, actual) {
     loadAll();
   } catch(e) { showToast('Error', 'err'); }
 }
+
+async function deleteLog(logKey) {
+  if (!logKey) return;
+  try {
+    await fetch(`${API}/simulacro-admin`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'delete-log', logKey })
+    });
+    showToast('Log eliminado', 'warn');
+    loadAll();
+  } catch(e) { showToast('Error', 'err'); }
+}
+
+async function clearLogs() {
+  if (!confirm('¿Borrar TODOS los registros de acceso? Esta acción no se puede deshacer.')) return;
+  try {
+    await fetch(`${API}/simulacro-admin`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN}` },
+      body: JSON.stringify({ action: 'clear-logs' })
+    });
+    showToast('Todos los logs eliminados', 'warn');
+    loadAll();
+  } catch(e) { showToast('Error', 'err'); }
+}
+
 function exportCSV() {
   const rows = [['Fecha','Hora','Nombre','Código','Dispositivo','OS','Navegador','IP']];
   allAccesos.forEach(l => rows.push([l.fecha||'', l.hora||'', l.nombre||'', l.codigo||'', l.deviceType||'', l.os||'', l.browser||'', l.ip||'']));
