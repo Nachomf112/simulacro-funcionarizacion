@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     const logs = [];
     for (const key of logKeys.slice(-100)) {
       const log = await redisGet(key);
-      if (log) logs.push(log);
+      if (log) logs.push({ ...log, logKey: key });
     }
     logs.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
