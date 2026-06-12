@@ -144,6 +144,19 @@ export default async function handler(req, res) {
     await redisSet(key, data);
     return res.status(200).json({ ok: true, limite: data.limiteSimulacros });
   }
+  // ── BORRAR LOG INDIVIDUAL ──
+  if (req.method === 'DELETE' && action === 'delete-log') {
+    const { logKey } = req.body;
+    if (!logKey) return res.status(400).json({ error: 'Falta logKey' });
+    await redisDel(logKey);
+    return res.status(200).json({ ok: true });
+  }
 
+  // ── BORRAR TODOS LOS LOGS ──
+  if (req.method === 'DELETE' && action === 'clear-logs') {
+    const logKeys = await redisKeys('simulacro:log:*');
+    for (const k of logKeys) await redisDel(k);
+    return res.status(200).json({ ok: true, deleted: logKeys.length });
+  }
   return res.status(400).json({ error: 'Acción no reconocida' });
 }
