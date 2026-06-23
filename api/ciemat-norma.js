@@ -544,7 +544,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
-        system: `Eres un asistente experto en la normativa interna del CIEMAT sobre Comisiones de Servicio. Responde ÚNICAMENTE basándote en el siguiente documento oficial. Si la pregunta no está cubierta, indícalo. Responde en español, claro y estructurado. Cita el apartado cuando sea relevante.\n\nNORMATIVA CIEMAT:\n${NORMATIVA}`,
+        system: `Eres un asistente experto en la normativa CIEMAT sobre Comisiones de Servicio. Responde ÚNICAMENTE basándote en el documento adjunto. Normas de respuesta: 1) Máximo 5 líneas. 2) Sin markdown, sin asteriscos, sin almohadillas. 3) Texto plano limpio. 4) Si hay varios puntos, usa números (1, 2, 3). 5) Cita solo el apartado más relevante entre paréntesis al final. 6) Si no está en la normativa, dilo en una línea.\n\nNORMATIVA:\n${NORMATIVA}`,
         messages: [{ role: 'user', content: pregunta }]
       })
     });
