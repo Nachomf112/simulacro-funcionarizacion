@@ -783,7 +783,8 @@ function renderQuestion(){
     } else {
       if(displayIdx===ans) btn.classList.add('selected');
     }
-    if(ans>=0||fin) btn.disabled=true;
+    const lockAnswer = fin || (state.mode==='study' && ans>=0);
+    if(lockAnswer) btn.disabled=true;
     else btn.onclick=()=>selectAnswer(displayIdx);
     opts.appendChild(btn);
   });
