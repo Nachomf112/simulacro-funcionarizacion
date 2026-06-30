@@ -172,6 +172,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
         <div class="kpi"><div class="kpi-label">Simulacros</div><div class="kpi-val purple" id="k-simulacros">-</div></div>
         <div class="kpi"><div class="kpi-label">Aprobados</div><div class="kpi-val green" id="k-aprobados">-</div></div>
         <div class="kpi"><div class="kpi-label">Media global</div><div class="kpi-val yellow" id="k-media">-</div></div>
+        <div class="kpi"><div class="kpi-label">Tema débil global</div><div class="kpi-val red" id="k-tema-debil" style="font-size:16px">-</div></div>
       </div>
 
       <div class="charts-grid">
@@ -179,10 +180,15 @@ tr:hover td{background:rgba(255,255,255,0.02)}
           <div class="chart-title">📅 Registros últimos 14 días</div>
           <div class="chart-wrap"><canvas id="chart-registros"></canvas></div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card" id="estado-card">
           <div class="chart-title">🎯 Estado de usuarios</div>
-          <div class="chart-wrap"><canvas id="chart-estado"></canvas></div>
+          <div class="chart-wrap" id="estado-wrap"><canvas id="chart-estado"></canvas></div>
         </div>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:1.5rem">
+        <div class="chart-title">📈 Evolución de la media global</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-evolucion"></canvas></div>
       </div>
     </div>
 
@@ -282,7 +288,7 @@ const ADMIN_TOKEN = 'ciemat-admin-2026';
 const ADMIN_PASS = 'MenarguezIA@2026';
 
 let allUsers = [], allAccesos = [];
-let chartReg = null, chartEstado = null;
+let chartReg = null, chartEstado = null, chartEvolucion = null;
 
 function doAdminLogin() {
   const pass = document.getElementById('l-pass').value;
@@ -326,7 +332,8 @@ async function loadAll() {
     allAccesos = d.accesos || [];
 
     renderKPIs(d.kpis);
-    renderCharts(d.kpis, d.registrosPorDia);
+    renderTemaDebil(d.temaDebilGlobal, d.temaStatsGlobal);
+    renderCharts(d.kpis, d.registrosPorDia, d.evolucionMedia);
     renderUsers();
     renderAccesos();
     renderRanking();
@@ -348,7 +355,23 @@ function renderKPIs(k) {
   document.getElementById('k-media').textContent = (k.mediaGlobal || 0) + '%';
 }
 
-function renderCharts(kpis, regPorDia) {
+const TEMAS_NOMBRE = {1:'Ley 39/40',2:'Personal',3:'Adquis./pérdida',4:'Adm. electrónica',5:'Contratos',6:'Presupuesto'};
+
+function renderTemaDebil(temaDebil, temaStats) {
+  const el = document.getElementById('k-tema-debil');
+  if (!el) return;
+  if (!temaDebil || !temaStats || !temaStats.length) {
+    el.textContent = 'Sin datos';
+    el.title = '';
+    return;
+  }
+  const nombre = TEMAS_NOMBRE[temaDebil.tema] || ('T' + temaDebil.tema);
+  el.textContent = `T${temaDebil.tema} · ${nombre} (${temaDebil.pct}%)`;
+  const tooltip = temaStats.map(t => `T${t.tema} ${TEMAS_NOMBRE[t.tema]||''}: ${t.pct}% (${t.total} respuestas)`).join('\n');
+  el.title = tooltip;
+}
+
+function renderCharts(kpis, regPorDia, evolucionMedia) {
   const dias = [];
   const vals = [];
   for (let i = 13; i >= 0; i--) {
@@ -376,20 +399,73 @@ function renderCharts(kpis, regPorDia) {
     }
   });
 
-  if (chartEstado) chartEstado.destroy();
-  const ctx2 = document.getElementById('chart-estado').getContext('2d');
-  chartEstado = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: ['Activos', 'Inactivos'],
-      datasets: [{ data: [kpis.activos||0, kpis.inactivos||0], backgroundColor: ['rgba(57,211,83,0.7)', 'rgba(248,81,73,0.7)'], borderWidth: 0 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } } },
-      cutout: '65%'
+  // ── Donut adaptativo: si está totalmente desbalanceado (todo activo o todo inactivo),
+  // mostrar un indicador simple en vez de un círculo sin matiz informativo ──
+  const totalEstado = (kpis.activos||0) + (kpis.inactivos||0);
+  const estadoWrap = document.getElementById('estado-wrap');
+  const desbalanceado = totalEstado > 0 && (kpis.activos === 0 || kpis.inactivos === 0);
+
+  if (desbalanceado) {
+    if (chartEstado) { chartEstado.destroy(); chartEstado = null; }
+    const todoActivo = kpis.inactivos === 0;
+    estadoWrap.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px">
+        <div style="font-size:42px;font-weight:700;color:${todoActivo?'var(--green)':'var(--red)'}">${todoActivo?kpis.activos:kpis.inactivos}</div>
+        <div style="font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">${todoActivo?'Todos los usuarios activos':'Todos los usuarios inactivos'}</div>
+      </div>`;
+  } else {
+    if (!document.getElementById('chart-estado')) {
+      estadoWrap.innerHTML = '<canvas id="chart-estado"></canvas>';
     }
-  });
+    const ctx2 = document.getElementById('chart-estado').getContext('2d');
+    if (chartEstado) chartEstado.destroy();
+    chartEstado = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Activos', 'Inactivos'],
+        datasets: [{ data: [kpis.activos||0, kpis.inactivos||0], backgroundColor: ['rgba(57,211,83,0.7)', 'rgba(248,81,73,0.7)'], borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } } },
+        cutout: '65%'
+      }
+    });
+  }
+
+  // ── Evolución de la media global por día ──
+  if (chartEvolucion) { chartEvolucion.destroy(); chartEvolucion = null; }
+  const evoCanvas = document.getElementById('chart-evolucion');
+  if (evoCanvas) {
+    const evo = evolucionMedia || [];
+    if (!evo.length) {
+      evoCanvas.parentElement.innerHTML = '<div class="no-data" style="padding:1.5rem 0">Aún no hay suficientes simulacros para mostrar evolución</div>';
+    } else {
+      const labels = evo.map(e => new Date(e.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
+      const data = evo.map(e => e.media);
+      const ctx3 = evoCanvas.getContext('2d');
+      chartEvolucion = new Chart(ctx3, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Media (%)', data,
+            borderColor: '#d29922', backgroundColor: 'rgba(210,153,34,0.15)',
+            borderWidth: 2, tension: 0.3, fill: true,
+            pointBackgroundColor: '#d29922', pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: 'rgba(48,54,61,0.5)' } },
+            y: { min: 0, max: 100, ticks: { color: '#8b949e', font: { size: 10 }, stepSize: 20, callback: v => v+'%' }, grid: { color: 'rgba(48,54,61,0.5)' } }
+          }
+        }
+      });
+    }
+  }
 }
 
 function renderUsers() {
