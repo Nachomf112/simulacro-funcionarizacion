@@ -685,16 +685,20 @@ async function startExam(){
       const total=d.stats?.totalSimulacros||0;
       if(total>=limite){
         showToast('⚠️ Has alcanzado tu límite de '+limite+' simulacros. Contacta con info@imenarguez-ia.com para ampliar tu acceso.','warn');
-        fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            nombre:session.nombre||session.codigo,
-            codigo:session.codigo,
-            totalSimulacros:total,
-            limite:limite
-          })
-        }).catch(()=>{});
+        const flagKey='limit_notified_'+session.codigo;
+        if(!localStorage.getItem(flagKey)){
+          localStorage.setItem(flagKey,'1');
+          fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+              nombre:session.nombre||session.codigo,
+              codigo:session.codigo,
+              totalSimulacros:total,
+              limite:limite
+            })
+          }).catch(()=>{});
+        }
         return;
       }
     }catch(e){}
@@ -1748,16 +1752,20 @@ window.saveHistory=function(entry){
     .then(d=>{
         if(d.limitReached){
           showToast('⚠️ Has alcanzado tu límite de simulacros. Contacta con info@imenarguez-ia.com para ampliar tu acceso.','warn');
-          fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-              nombre:session.nombre||session.codigo,
-              codigo:session.codigo,
-              totalSimulacros:d.stats?.totalSimulacros||0,
-              limite:d.limite||50
-            })
-          }).catch(()=>{});
+          const flagKey='limit_notified_'+session.codigo;
+          if(!localStorage.getItem(flagKey)){
+            localStorage.setItem(flagKey,'1');
+            fetch('https://hook.eu2.make.com/ibuilyrukq2a22l0gwjyw58imi1a23jh',{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({
+                nombre:session.nombre||session.codigo,
+                codigo:session.codigo,
+                totalSimulacros:d.stats?.totalSimulacros||0,
+                limite:d.limite||50
+              })
+            }).catch(()=>{});
+          }
         }
       })
     .catch(()=>{});
